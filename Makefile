@@ -5,11 +5,18 @@ PROGS = tests
 default: $(PROGS)
 	DYLD_FRAMEWORK_PATH=/Applications/Xcode.app/Contents/Developer/Library/Frameworks ./tests
 
-tests: tests.o tweetnacl-objc.o tweetnacl.o randombytes_deterministic.o
+tests: \
+	tests.o \
+	tweetnacl-objc.o \
+	tweetnacl.o \
+	randombytes_deterministic.o \
+	ObjcNaClTest.o
 	$(CC) -o $@ $(CFLAGS) $^ -framework Foundation -framework SenTestingKit
 
 tests.o: \
 	tests.m
+
+ObjcNaClTest.o: ObjcNaClTest.m tweetnacl-objc.h
 
 tweetnacl-objc.o: \
 	tweetnacl-objc.m \
