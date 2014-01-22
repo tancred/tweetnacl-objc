@@ -28,6 +28,19 @@ static int hexchar2value(unsigned char c);
     STAssertEqualObjects(error, nil, nil);
 }
 
+- (void)testBox {
+    NSData *pk = HEX2DATA("4242424242424242424242424242424242424242424242424242424242424242");
+    NSData *sk = HEX2DATA("4141414141414141414141414141414141414141414141414141414141414141");
+    NSData *n  = HEX2DATA("434343434343434343434343434343434343434343434343");
+    NSData *m = [NSData dataWithBytes:"Hello, World!" length:13];
+
+    NSError *error = nil;
+    NSData *c = ObjcNaClBox(m, n, pk, sk, &error);
+
+    STAssertEqualObjects(c, HEX2DATA("14290a0c610ce0e237f6abca3089992730027a27cc9097b01333fd5713"), @"cipher");
+    STAssertEqualObjects(error, nil, nil);
+}
+
 @end
 
 
@@ -39,6 +52,20 @@ static int hexchar2value(unsigned char c);
     crypto_box_keypair([pk mutableBytes], [sk mutableBytes]);
     STAssertEqualObjects(pk, HEX2DATA("5dfedd3b6bd47f6fa28ee15d969d5bb0ea53774d488bdaf9df1c6e0124b3ef22"), @"public key");
     STAssertEqualObjects(sk, HEX2DATA("0303030303030303030303030303030303030303030303030303030303030303"), @"secret key");
+}
+
+- (void)testBox {
+    NSData *pk = HEX2DATA("4242424242424242424242424242424242424242424242424242424242424242");
+    NSData *sk = HEX2DATA("4141414141414141414141414141414141414141414141414141414141414141");
+    NSData *n  = HEX2DATA("434343434343434343434343434343434343434343434343");
+    NSMutableData *m = [NSMutableData dataWithLength:crypto_box_ZEROBYTES];
+    [m appendBytes:"Hello, World!" length:13];
+
+    NSMutableData *c = [NSMutableData dataWithLength:[m length]];
+
+    int r = crypto_box([c mutableBytes], [m bytes], [m length], [n bytes], [pk bytes], [sk bytes]);
+    STAssertEquals(0, r, @"result");
+    STAssertEqualObjects(c, HEX2DATA("0000000000000000000000000000000014290a0c610ce0e237f6abca3089992730027a27cc9097b01333fd5713"), @"cipher");
 }
 
 @end
