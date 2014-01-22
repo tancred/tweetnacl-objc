@@ -58,6 +58,23 @@ static int hexchar2value(unsigned char c);
     STAssertEqualObjects([error userInfo], (@{NSLocalizedDescriptionKey: @"incorrect nonce length"}), @"user info");
 }
 
+- (void)testBoxRequiresCorrectPublicKeyLength {
+    //NSData *pk = HEX2DATA("4242424242424242424242424242424242424242424242424242424242424242");
+    NSData *sk = HEX2DATA("4141414141414141414141414141414141414141414141414141414141414141");
+    NSData *n  = HEX2DATA("434343434343434343434343434343434343434343434343");
+    NSData *m = [NSData dataWithBytes:"Hello, World!" length:13];
+
+    NSError *error = nil;
+    NSData *c = ObjcNaClBox(m, n, [NSMutableData dataWithLength:crypto_box_PUBLICKEYBYTES + 1], sk, &error);
+
+    STAssertNil(c, nil, @"cipher");
+
+    STAssertNotNil(error, nil, @"error");
+    STAssertEquals([error code], (NSInteger)2, @"code");
+    STAssertEqualObjects([error domain], ObjcNaClErrorDomain, @"domain");
+    STAssertEqualObjects([error userInfo], (@{NSLocalizedDescriptionKey: @"incorrect public-key length"}), @"user info");
+}
+
 @end
 
 

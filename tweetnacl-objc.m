@@ -17,6 +17,7 @@ NSData *ObjcNaClBoxKeypair(NSData **aSecretKey, NSError **anError) {
 
 NSData *ObjcNaClBox(NSData *m, NSData *n, NSData *pk, NSData *sk, NSError **anError) {
     if ([n length] != crypto_box_NONCEBYTES) { if (anError) *anError = CreateError(1, @"incorrect nonce length"); return nil; }
+    if ([pk length] != crypto_box_PUBLICKEYBYTES) { if (anError) *anError = CreateError(2, @"incorrect public-key length"); return nil; }
 
     NSMutableData *mm = [NSMutableData dataWithLength:crypto_box_ZEROBYTES];
     [mm appendData:m];
