@@ -8,6 +8,8 @@ NSData *ObjcNaClBoxOpen(NSData *c, NSData *n, NSData *pk, NSData *sk, NSError **
 BOOL ObjcNaClBoxBeforeNM(NSData **k, NSData *pk, NSData *sk, NSError **error);
 NSData *ObjcNaClBoxAfterNM(NSData *m, NSData *n, NSData *k, NSError **error);
 
+extern NSString * const ObjcNaClErrorDomain;
+
 /*
 @interface ObjcNaClBox : NSObject
 @property(copy) NSData *k;
