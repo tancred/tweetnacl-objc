@@ -19,6 +19,10 @@ static int hexchar2value(unsigned char c);
 
 
 @interface ObjcNaClTest : SenTestCase
+@property(strong) NSData *pk;
+@property(strong) NSData *sk;
+@property(strong) NSData *n;
+@property(strong) NSData *m;
 @end
 
 @interface TweetNaClVerificationTest : SenTestCase
@@ -29,64 +33,48 @@ static int hexchar2value(unsigned char c);
 
 
 @implementation ObjcNaClTest
+@synthesize pk,sk,n,m;
+
+- (void)setUp {
+    pk = HEX2DATA("4242424242424242424242424242424242424242424242424242424242424242");
+    sk = HEX2DATA("4141414141414141414141414141414141414141414141414141414141414141");
+    n  = HEX2DATA("434343434343434343434343434343434343434343434343");
+    m = [NSData dataWithBytes:"Hello, World!" length:13];
+}
 
 - (void)testKeypair {
     NSError *error = nil;
-    NSData *sk = nil;
-    NSData *pk = ObjcNaClBoxKeypair(&sk, &error);
-    STAssertEqualObjects(pk, HEX2DATA("5dfedd3b6bd47f6fa28ee15d969d5bb0ea53774d488bdaf9df1c6e0124b3ef22"), @"public key");
-    STAssertEqualObjects(sk, HEX2DATA("0303030303030303030303030303030303030303030303030303030303030303"), @"secret key");
+    NSData *lsk = nil;
+    NSData *lpk = ObjcNaClBoxKeypair(&lsk, &error);
+    STAssertEqualObjects(lpk, HEX2DATA("5dfedd3b6bd47f6fa28ee15d969d5bb0ea53774d488bdaf9df1c6e0124b3ef22"), @"public key");
+    STAssertEqualObjects(lsk, HEX2DATA("0303030303030303030303030303030303030303030303030303030303030303"), @"secret key");
     STAssertEqualObjects(error, nil, nil);
 }
 
 - (void)testBox {
-    NSData *pk = HEX2DATA("4242424242424242424242424242424242424242424242424242424242424242");
-    NSData *sk = HEX2DATA("4141414141414141414141414141414141414141414141414141414141414141");
-    NSData *n  = HEX2DATA("434343434343434343434343434343434343434343434343");
-    NSData *m = [NSData dataWithBytes:"Hello, World!" length:13];
-
     NSError *error = nil;
     NSData *c = ObjcNaClBox(m, n, pk, sk, &error);
-
     STAssertEqualObjects(c, HEX2DATA("14290a0c610ce0e237f6abca3089992730027a27cc9097b01333fd5713"), @"cipher");
     STAssertEqualObjects(error, nil, nil);
 }
 
 - (void)testBoxRequiresCorrectNonceLength {
-    NSData *pk = HEX2DATA("4242424242424242424242424242424242424242424242424242424242424242");
-    NSData *sk = HEX2DATA("4141414141414141414141414141414141414141414141414141414141414141");
-    //NSData *n  = HEX2DATA("434343434343434343434343434343434343434343434343");
-    NSData *m = [NSData dataWithBytes:"Hello, World!" length:13];
-
     NSError *error = nil;
     NSData *c = ObjcNaClBox(m, [NSMutableData dataWithLength:23], pk, sk, &error);
-
     STAssertNil(c, nil, @"cipher");
     AssertError(error, 1, ObjcNaClErrorDomain, @"incorrect nonce length");
 }
 
 - (void)testBoxRequiresCorrectPublicKeyLength {
-    //NSData *pk = HEX2DATA("4242424242424242424242424242424242424242424242424242424242424242");
-    NSData *sk = HEX2DATA("4141414141414141414141414141414141414141414141414141414141414141");
-    NSData *n  = HEX2DATA("434343434343434343434343434343434343434343434343");
-    NSData *m = [NSData dataWithBytes:"Hello, World!" length:13];
-
     NSError *error = nil;
     NSData *c = ObjcNaClBox(m, n, [NSMutableData dataWithLength:crypto_box_PUBLICKEYBYTES + 1], sk, &error);
-
     STAssertNil(c, nil, @"cipher");
     AssertError(error, 2, ObjcNaClErrorDomain, @"incorrect public-key length");
 }
 
 - (void)testBoxRequiresCorrectSecretKeyLength {
-    NSData *pk = HEX2DATA("4242424242424242424242424242424242424242424242424242424242424242");
-    //NSData *sk = HEX2DATA("4141414141414141414141414141414141414141414141414141414141414141");
-    NSData *n  = HEX2DATA("434343434343434343434343434343434343434343434343");
-    NSData *m = [NSData dataWithBytes:"Hello, World!" length:13];
-
     NSError *error = nil;
     NSData *c = ObjcNaClBox(m, n, pk, [NSMutableData dataWithLength:crypto_box_SECRETKEYBYTES - 1], &error);
-
     STAssertNil(c, nil, @"cipher");
     AssertError(error, 3, ObjcNaClErrorDomain, @"incorrect secret-key length");
 }
