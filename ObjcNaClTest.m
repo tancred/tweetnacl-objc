@@ -117,6 +117,16 @@ static int hexchar2value(unsigned char c);
     STAssertEqualObjects(c, HEX2DATA("00000000000000000000000000000000bb9fa648e55b759aeaf62785214fedf4d3d60a6bfc40661a7ec0cc4493"), @"cipher");
 }
 
+- (void)testBoxOpen {
+    NSData *c = HEX2DATA("00000000000000000000000000000000bb9fa648e55b759aeaf62785214fedf4d3d60a6bfc40661a7ec0cc4493");
+    NSMutableData *m = [NSMutableData dataWithLength:[c length]];
+
+    int r = crypto_box_open([m mutableBytes], [c bytes], [c length], [n bytes], [alicepk bytes], [bobsk bytes]);
+
+    STAssertEquals(0, r, @"result");
+    STAssertEqualObjects(m, HEX2DATA("000000000000000000000000000000000000000000000000000000000000000048656c6c6f2c20576f726c6421"), @"message");
+}
+
 @end
 
 
