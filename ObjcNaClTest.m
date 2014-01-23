@@ -2,6 +2,17 @@
 #import "tweetnacl-objc.h"
 #import "tweetnacl.h"
 
+
+#define AssertError(actualError, expectedCode, expectedDomain, expectedDesc) \
+do { \
+    STAssertNotNil((actualError), nil, nil); \
+    if (!(actualError)) break; \
+    STAssertEquals([(actualError) code], (NSInteger)(expectedCode), @"code"); \
+    STAssertEqualObjects([(actualError) domain], expectedDomain, @"domain"); \
+    STAssertEqualObjects([[(actualError) userInfo] objectForKey:NSLocalizedDescriptionKey], (expectedDesc), nil); \
+} while(0)
+
+
 //static NSData *STR2DATA(const char *x);
 static NSData *HEX2DATA(const char *x);
 static int hexchar2value(unsigned char c);
@@ -51,11 +62,7 @@ static int hexchar2value(unsigned char c);
     NSData *c = ObjcNaClBox(m, [NSMutableData dataWithLength:23], pk, sk, &error);
 
     STAssertNil(c, nil, @"cipher");
-
-    STAssertNotNil(error, nil, @"error");
-    STAssertEquals([error code], (NSInteger)1, @"code");
-    STAssertEqualObjects([error domain], ObjcNaClErrorDomain, @"domain");
-    STAssertEqualObjects([error userInfo], (@{NSLocalizedDescriptionKey: @"incorrect nonce length"}), @"user info");
+    AssertError(error, 1, ObjcNaClErrorDomain, @"incorrect nonce length");
 }
 
 - (void)testBoxRequiresCorrectPublicKeyLength {
@@ -68,11 +75,7 @@ static int hexchar2value(unsigned char c);
     NSData *c = ObjcNaClBox(m, n, [NSMutableData dataWithLength:crypto_box_PUBLICKEYBYTES + 1], sk, &error);
 
     STAssertNil(c, nil, @"cipher");
-
-    STAssertNotNil(error, nil, @"error");
-    STAssertEquals([error code], (NSInteger)2, @"code");
-    STAssertEqualObjects([error domain], ObjcNaClErrorDomain, @"domain");
-    STAssertEqualObjects([error userInfo], (@{NSLocalizedDescriptionKey: @"incorrect public-key length"}), @"user info");
+    AssertError(error, 2, ObjcNaClErrorDomain, @"incorrect public-key length");
 }
 
 - (void)testBoxRequiresCorrectSecretKeyLength {
@@ -85,11 +88,7 @@ static int hexchar2value(unsigned char c);
     NSData *c = ObjcNaClBox(m, n, pk, [NSMutableData dataWithLength:crypto_box_SECRETKEYBYTES - 1], &error);
 
     STAssertNil(c, nil, @"cipher");
-
-    STAssertNotNil(error, nil, @"error");
-    STAssertEquals([error code], (NSInteger)3, @"code");
-    STAssertEqualObjects([error domain], ObjcNaClErrorDomain, @"domain");
-    STAssertEqualObjects([error userInfo], (@{NSLocalizedDescriptionKey: @"incorrect secret-key length"}), @"user info");
+    AssertError(error, 3, ObjcNaClErrorDomain, @"incorrect secret-key length");
 }
 
 @end
