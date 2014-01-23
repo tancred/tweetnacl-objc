@@ -26,6 +26,11 @@ static int hexchar2value(unsigned char c);
 @end
 
 @interface TweetNaClVerificationTest : SenTestCase
+@property(strong) NSData *alicepk;
+@property(strong) NSData *alicesk;
+@property(strong) NSData *bobpk;
+@property(strong) NSData *bobsk;
+@property(strong) NSData *n;
 @end
 
 @interface TestHelpersTest : SenTestCase
@@ -83,6 +88,15 @@ static int hexchar2value(unsigned char c);
 
 
 @implementation TweetNaClVerificationTest
+@synthesize alicepk, alicesk, bobpk, bobsk, n;
+
+- (void)setUp {
+    alicepk = HEX2DATA("5dfedd3b6bd47f6fa28ee15d969d5bb0ea53774d488bdaf9df1c6e0124b3ef22");
+    alicesk = HEX2DATA("0303030303030303030303030303030303030303030303030303030303030303");
+    bobpk   = HEX2DATA("ac01b2209e86354fb853237b5de0f4fab13c7fcbf433a61c019369617fecf10b");
+    bobsk   = HEX2DATA("0404040404040404040404040404040404040404040404040404040404040404");
+    n       = HEX2DATA("434343434343434343434343434343434343434343434343");
+}
 
 - (void)testKeypair {
     NSMutableData *pk = [NSMutableData dataWithLength:crypto_box_PUBLICKEYBYTES];
@@ -93,17 +107,14 @@ static int hexchar2value(unsigned char c);
 }
 
 - (void)testBox {
-    NSData *pk = HEX2DATA("4242424242424242424242424242424242424242424242424242424242424242");
-    NSData *sk = HEX2DATA("4141414141414141414141414141414141414141414141414141414141414141");
-    NSData *n  = HEX2DATA("434343434343434343434343434343434343434343434343");
     NSMutableData *m = [NSMutableData dataWithLength:crypto_box_ZEROBYTES];
     [m appendBytes:"Hello, World!" length:13];
-
     NSMutableData *c = [NSMutableData dataWithLength:[m length]];
 
-    int r = crypto_box([c mutableBytes], [m bytes], [m length], [n bytes], [pk bytes], [sk bytes]);
+    int r = crypto_box([c mutableBytes], [m bytes], [m length], [n bytes], [bobpk bytes], [alicesk bytes]);
+
     STAssertEquals(0, r, @"result");
-    STAssertEqualObjects(c, HEX2DATA("0000000000000000000000000000000014290a0c610ce0e237f6abca3089992730027a27cc9097b01333fd5713"), @"cipher");
+    STAssertEqualObjects(c, HEX2DATA("00000000000000000000000000000000bb9fa648e55b759aeaf62785214fedf4d3d60a6bfc40661a7ec0cc4493"), @"cipher");
 }
 
 @end
