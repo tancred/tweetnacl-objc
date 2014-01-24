@@ -96,6 +96,31 @@ static int hexchar2value(unsigned char c);
     STAssertEqualObjects(error, nil, nil);
 }
 
+- (void)testBoxOpenRequiresCorrectNonceLength {
+    NSError *error = nil;
+    NSData *c = HEX2DATA("bb9fa648e55b759aeaf62785214fedf4d3d60a6bfc40661a7ec0cc4493");
+    n = [NSMutableData dataWithLength:23];
+    m = ObjcNaClBoxOpen(c, n, alicepk, bobsk, &error);
+    STAssertNil(m, nil, @"message");
+    AssertError(error, 1, ObjcNaClErrorDomain, @"incorrect nonce length");
+}
+
+- (void)testBoxOpenRequiresCorrectPublicKeyLength {
+    NSError *error = nil;
+    NSData *c = HEX2DATA("bb9fa648e55b759aeaf62785214fedf4d3d60a6bfc40661a7ec0cc4493");
+    m = ObjcNaClBoxOpen(c, n, [NSMutableData dataWithLength:crypto_box_PUBLICKEYBYTES + 1], bobsk, &error);
+    STAssertNil(m, nil, @"message");
+    AssertError(error, 2, ObjcNaClErrorDomain, @"incorrect public-key length");
+}
+
+- (void)testBoxOpenRequiresCorrectSecretKeyLength {
+    NSError *error = nil;
+    NSData *c = HEX2DATA("bb9fa648e55b759aeaf62785214fedf4d3d60a6bfc40661a7ec0cc4493");
+    m = ObjcNaClBoxOpen(c, n, alicepk, [NSMutableData dataWithLength:crypto_box_PUBLICKEYBYTES - 1], &error);
+    STAssertNil(m, nil, @"message");
+    AssertError(error, 3, ObjcNaClErrorDomain, @"incorrect secret-key length");
+}
+
 @end
 
 

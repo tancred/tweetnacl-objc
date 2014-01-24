@@ -33,7 +33,11 @@ NSData *ObjcNaClBox(NSData *m, NSData *n, NSData *pk, NSData *sk, NSError **anEr
     return [c subdataWithRange:NSMakeRange(crypto_box_BOXZEROBYTES, [c length] - crypto_box_BOXZEROBYTES)];
 }
 
-NSData *ObjcNaClBoxOpen(NSData *c, NSData *n, NSData *pk, NSData *sk, NSError **error) {
+NSData *ObjcNaClBoxOpen(NSData *c, NSData *n, NSData *pk, NSData *sk, NSError **anError) {
+    if ([n length] != crypto_box_NONCEBYTES) { if (anError) *anError = CreateError(1, @"incorrect nonce length"); return nil; }
+    if ([pk length] != crypto_box_PUBLICKEYBYTES) { if (anError) *anError = CreateError(2, @"incorrect public-key length"); return nil; }
+    if ([sk length] != crypto_box_SECRETKEYBYTES) { if (anError) *anError = CreateError(3, @"incorrect secret-key length"); return nil; }
+
     NSMutableData *cc = [NSMutableData dataWithLength:crypto_box_BOXZEROBYTES];
     [cc appendData:c];
 
