@@ -48,7 +48,7 @@ static int hexchar2value(unsigned char c);
     bobpk   = HEX2DATA("ac01b2209e86354fb853237b5de0f4fab13c7fcbf433a61c019369617fecf10b");
     bobsk   = HEX2DATA("0404040404040404040404040404040404040404040404040404040404040404");
     n       = HEX2DATA("434343434343434343434343434343434343434343434343");
-    m = [NSData dataWithBytes:"Hello, World!" length:13];
+    m       = [NSData dataWithBytes:"Hello, World!" length:13];
 }
 
 - (void)testKeypair {
