@@ -2,6 +2,10 @@
 #import "tweetnacl.h"
 
 static NSError *CreateError(NSInteger code, NSString *descriptionFormat, ...)  NS_FORMAT_FUNCTION(2, 3);
+static BOOL IsValidNonceAndKeys(NSData *n, NSData *pk, NSData *sk, NSError **anError);
+static BOOL IsValidNonce(NSData *n, NSError **anError);
+static BOOL IsValidPublicKey(NSData *n, NSError **anError);
+static BOOL IsValidSecretKey(NSData *n, NSError **anError);
 
 NSData *ObjcNaClBoxKeypair(NSData **aSecretKey, NSError **anError) {
     NSMutableData *pk = [NSMutableData dataWithLength:crypto_box_PUBLICKEYBYTES];
@@ -16,9 +20,7 @@ NSData *ObjcNaClBoxKeypair(NSData **aSecretKey, NSError **anError) {
 }
 
 NSData *ObjcNaClBox(NSData *m, NSData *n, NSData *pk, NSData *sk, NSError **anError) {
-    if ([n length] != crypto_box_NONCEBYTES) { if (anError) *anError = CreateError(1, @"incorrect nonce length"); return nil; }
-    if ([pk length] != crypto_box_PUBLICKEYBYTES) { if (anError) *anError = CreateError(2, @"incorrect public-key length"); return nil; }
-    if ([sk length] != crypto_box_SECRETKEYBYTES) { if (anError) *anError = CreateError(3, @"incorrect secret-key length"); return nil; }
+    if (!IsValidNonceAndKeys(n, pk, sk, anError)) return nil;
 
     NSMutableData *mm = [NSMutableData dataWithLength:crypto_box_ZEROBYTES];
     [mm appendData:m];
@@ -34,9 +36,7 @@ NSData *ObjcNaClBox(NSData *m, NSData *n, NSData *pk, NSData *sk, NSError **anEr
 }
 
 NSData *ObjcNaClBoxOpen(NSData *c, NSData *n, NSData *pk, NSData *sk, NSError **anError) {
-    if ([n length] != crypto_box_NONCEBYTES) { if (anError) *anError = CreateError(1, @"incorrect nonce length"); return nil; }
-    if ([pk length] != crypto_box_PUBLICKEYBYTES) { if (anError) *anError = CreateError(2, @"incorrect public-key length"); return nil; }
-    if ([sk length] != crypto_box_SECRETKEYBYTES) { if (anError) *anError = CreateError(3, @"incorrect secret-key length"); return nil; }
+    if (!IsValidNonceAndKeys(n, pk, sk, anError)) return nil;
 
     NSMutableData *cc = [NSMutableData dataWithLength:crypto_box_BOXZEROBYTES];
     [cc appendData:c];
@@ -52,6 +52,28 @@ static NSError *CreateError(NSInteger code, NSString *descriptionFormat, ...) {
     NSString *s = [[NSString alloc] initWithFormat:descriptionFormat arguments:args];
     va_end(args);
     return [NSError errorWithDomain:ObjcNaClErrorDomain code:code userInfo:@{NSLocalizedDescriptionKey:s}];
+}
+
+static BOOL IsValidNonceAndKeys(NSData *n, NSData *pk, NSData *sk, NSError **anError) {
+    if (!IsValidNonce(n, anError)) return NO;
+    if (!IsValidPublicKey(pk, anError)) return NO;
+    if (!IsValidSecretKey(sk, anError)) return NO;
+    return YES;
+}
+
+static BOOL IsValidNonce(NSData *n, NSError **anError) {
+    if ([n length] != crypto_box_NONCEBYTES) { if (anError) *anError = CreateError(1, @"incorrect nonce length"); return NO; }
+    return YES;
+}
+
+static BOOL IsValidPublicKey(NSData *pk, NSError **anError) {
+    if ([pk length] != crypto_box_PUBLICKEYBYTES) { if (anError) *anError = CreateError(2, @"incorrect public-key length"); return NO; }
+    return YES;
+}
+
+static BOOL IsValidSecretKey(NSData *sk, NSError **anError) {
+    if ([sk length] != crypto_box_SECRETKEYBYTES) { if (anError) *anError = CreateError(3, @"incorrect secret-key length"); return NO; }
+    return YES;
 }
 
 NSString * const ObjcNaClErrorDomain = @"ObjcNaClErrorDomain";
