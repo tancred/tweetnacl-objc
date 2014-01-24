@@ -33,6 +33,15 @@ NSData *ObjcNaClBox(NSData *m, NSData *n, NSData *pk, NSData *sk, NSError **anEr
     return [c subdataWithRange:NSMakeRange(crypto_box_BOXZEROBYTES, [c length] - crypto_box_BOXZEROBYTES)];
 }
 
+NSData *ObjcNaClBoxOpen(NSData *c, NSData *n, NSData *pk, NSData *sk, NSError **error) {
+    NSMutableData *cc = [NSMutableData dataWithLength:crypto_box_BOXZEROBYTES];
+    [cc appendData:c];
+
+    NSMutableData *m = [NSMutableData dataWithLength:[cc length]];
+    int r = crypto_box_open([m mutableBytes], [cc bytes], [cc length], [n bytes], [pk bytes], [sk bytes]);
+    return [m subdataWithRange:NSMakeRange(crypto_box_ZEROBYTES, [m length] - crypto_box_ZEROBYTES)];
+}
+
 static NSError *CreateError(NSInteger code, NSString *descriptionFormat, ...) {
     va_list args;
     va_start(args, descriptionFormat);

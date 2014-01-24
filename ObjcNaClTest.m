@@ -13,7 +13,7 @@ do { \
 } while(0)
 
 
-//static NSData *STR2DATA(const char *x);
+static NSData *STR2DATA(const char *x);
 static NSData *HEX2DATA(const char *x);
 static int hexchar2value(unsigned char c);
 
@@ -86,6 +86,14 @@ static int hexchar2value(unsigned char c);
     NSData *c = ObjcNaClBox(m, n, bobpk, [NSMutableData dataWithLength:crypto_box_SECRETKEYBYTES - 1], &error);
     STAssertNil(c, nil, @"cipher");
     AssertError(error, 3, ObjcNaClErrorDomain, @"incorrect secret-key length");
+}
+
+- (void)testBoxOpen {
+    NSError *error = nil;
+    NSData *c = HEX2DATA("bb9fa648e55b759aeaf62785214fedf4d3d60a6bfc40661a7ec0cc4493");
+    m = ObjcNaClBoxOpen(c, n, alicepk, bobsk, &error);
+    STAssertEqualObjects(m, STR2DATA("Hello, World!"), @"message"); //48656c6c6f2c20576f726c6421
+    STAssertEqualObjects(error, nil, nil);
 }
 
 @end
@@ -165,9 +173,9 @@ static int hexchar2value(unsigned char c);
 @end
 
 
-//static NSData *STR2DATA(const char *x) {
-//    return [NSData dataWithBytes:x length:strlen(x)];
-//}
+static NSData *STR2DATA(const char *x) {
+    return [NSData dataWithBytes:x length:strlen(x)];
+}
 
 static NSData *HEX2DATA(const char *x) {
     int len = strlen(x);
