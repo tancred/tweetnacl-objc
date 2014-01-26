@@ -33,6 +33,8 @@ static int hexchar2value(unsigned char c);
 @property(strong) NSData *bobpk;
 @property(strong) NSData *bobsk;
 @property(strong) NSData *n;
+@property(strong) NSData *aliceMessage;
+@property(strong) NSData *aliceCipher;
 @end
 
 @interface TestHelpersTest : SenTestCase
@@ -125,7 +127,7 @@ static int hexchar2value(unsigned char c);
 
 
 @implementation TweetNaClVerificationTest
-@synthesize alicepk, alicesk, bobpk, bobsk, n;
+@synthesize alicepk, alicesk, bobpk, bobsk, n, aliceMessage, aliceCipher;
 
 - (void)setUp {
     alicepk = HEX2DATA("5dfedd3b6bd47f6fa28ee15d969d5bb0ea53774d488bdaf9df1c6e0124b3ef22");
@@ -133,6 +135,8 @@ static int hexchar2value(unsigned char c);
     bobpk   = HEX2DATA("ac01b2209e86354fb853237b5de0f4fab13c7fcbf433a61c019369617fecf10b");
     bobsk   = HEX2DATA("0404040404040404040404040404040404040404040404040404040404040404");
     n       = HEX2DATA("434343434343434343434343434343434343434343434343");
+    aliceMessage = HEX2DATA("000000000000000000000000000000000000000000000000000000000000000048656c6c6f2c20576f726c6421");
+    aliceCipher = HEX2DATA("00000000000000000000000000000000bb9fa648e55b759aeaf62785214fedf4d3d60a6bfc40661a7ec0cc4493");
 }
 
 - (void)testKeypair {
@@ -151,17 +155,53 @@ static int hexchar2value(unsigned char c);
     int r = crypto_box([c mutableBytes], [m bytes], [m length], [n bytes], [bobpk bytes], [alicesk bytes]);
 
     STAssertEquals(0, r, @"result");
-    STAssertEqualObjects(c, HEX2DATA("00000000000000000000000000000000bb9fa648e55b759aeaf62785214fedf4d3d60a6bfc40661a7ec0cc4493"), @"cipher");
+    STAssertEqualObjects(c, aliceCipher, @"cipher");
 }
 
 - (void)testBoxOpen {
-    NSData *c = HEX2DATA("00000000000000000000000000000000bb9fa648e55b759aeaf62785214fedf4d3d60a6bfc40661a7ec0cc4493");
+    NSData *c = aliceCipher;
     NSMutableData *m = [NSMutableData dataWithLength:[c length]];
 
     int r = crypto_box_open([m mutableBytes], [c bytes], [c length], [n bytes], [alicepk bytes], [bobsk bytes]);
 
     STAssertEquals(0, r, @"result");
-    STAssertEqualObjects(m, HEX2DATA("000000000000000000000000000000000000000000000000000000000000000048656c6c6f2c20576f726c6421"), @"message");
+    STAssertEqualObjects(m, aliceMessage, @"message");
+}
+
+- (void)testBoxOpenFailsWithBadPublicKey {
+    NSData *c = aliceCipher;
+    NSMutableData *m = [NSMutableData dataWithLength:[c length]];
+
+    int r = crypto_box_open([m mutableBytes], [c bytes], [c length], [n bytes], [bobpk bytes], [bobsk bytes]);
+
+    STAssertEquals(-1, r, nil);
+}
+
+- (void)testBoxOpenFailsWithBadSecretKey {
+    NSData *c = aliceCipher;
+    NSMutableData *m = [NSMutableData dataWithLength:[c length]];
+
+    int r = crypto_box_open([m mutableBytes], [c bytes], [c length], [n bytes], [alicepk bytes], [alicesk bytes]);
+
+    STAssertEquals(-1, r, nil);
+}
+
+- (void)testBoxOpenFailsWithBadNonce {
+    NSData *c = aliceCipher;
+    NSMutableData *m = [NSMutableData dataWithLength:[c length]];
+
+    int r = crypto_box_open([m mutableBytes], [c bytes], [c length], [HEX2DATA("434343434343434343434343434343434343434343434344") bytes], [alicepk bytes], [bobsk bytes]);
+
+    STAssertEquals(-1, r, nil);
+}
+
+- (void)testBoxOpenFailsWithChangedCipher {
+    NSData *c = HEX2DATA("00000000000000000000000000000000bb9fa648e55b759aeaf62785214fedf4d3d60a6bfc40661a7ec0cc4494");
+    NSMutableData *m = [NSMutableData dataWithLength:[c length]];
+
+    int r = crypto_box_open([m mutableBytes], [c bytes], [c length], [n bytes], [alicepk bytes], [bobsk bytes]);
+
+    STAssertEquals(-1, r, nil);
 }
 
 @end
