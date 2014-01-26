@@ -23,8 +23,9 @@ static int hexchar2value(unsigned char c);
 @property(strong) NSData *alicesk;
 @property(strong) NSData *bobpk;
 @property(strong) NSData *bobsk;
-@property(strong) NSData *n;
-@property(strong) NSData *m;
+@property(strong) NSData *nonce;
+@property(strong) NSData *aliceMessage;
+@property(strong) NSData *aliceCipher;
 @end
 
 @interface TweetNaClVerificationTest : SenTestCase
@@ -42,15 +43,16 @@ static int hexchar2value(unsigned char c);
 
 
 @implementation ObjcNaClTest
-@synthesize alicepk,alicesk,bobpk,bobsk,n,m;
+@synthesize alicepk,alicesk,bobpk,bobsk,nonce,aliceMessage,aliceCipher;
 
 - (void)setUp {
     alicepk = HEX2DATA("5dfedd3b6bd47f6fa28ee15d969d5bb0ea53774d488bdaf9df1c6e0124b3ef22");
     alicesk = HEX2DATA("0303030303030303030303030303030303030303030303030303030303030303");
     bobpk   = HEX2DATA("ac01b2209e86354fb853237b5de0f4fab13c7fcbf433a61c019369617fecf10b");
     bobsk   = HEX2DATA("0404040404040404040404040404040404040404040404040404040404040404");
-    n       = HEX2DATA("434343434343434343434343434343434343434343434343");
-    m       = [NSData dataWithBytes:"Hello, World!" length:13];
+    nonce   = HEX2DATA("434343434343434343434343434343434343434343434343");
+    aliceMessage = STR2DATA("Hello, World!");
+    aliceCipher  = HEX2DATA("bb9fa648e55b759aeaf62785214fedf4d3d60a6bfc40661a7ec0cc4493");
 }
 
 - (void)testKeypair {
@@ -64,61 +66,57 @@ static int hexchar2value(unsigned char c);
 
 - (void)testBox {
     NSError *error = nil;
-    NSData *c = ObjcNaClBox(m, n, bobpk, alicesk, &error);
-    STAssertEqualObjects(c, HEX2DATA("bb9fa648e55b759aeaf62785214fedf4d3d60a6bfc40661a7ec0cc4493"), @"cipher");
+    NSData *c = ObjcNaClBox(aliceMessage, nonce, bobpk, alicesk, &error);
+    STAssertEqualObjects(c, aliceCipher, @"cipher");
     STAssertEqualObjects(error, nil, nil);
 }
 
 - (void)testBoxRequiresCorrectNonceLength {
     NSError *error = nil;
-    NSData *c = ObjcNaClBox(m, [NSMutableData dataWithLength:23], bobpk, alicesk, &error);
+    NSData *c = ObjcNaClBox(aliceMessage, [NSMutableData dataWithLength:23], bobpk, alicesk, &error);
     STAssertNil(c, nil, @"cipher");
     AssertError(error, 1, ObjcNaClErrorDomain, @"incorrect nonce length");
 }
 
 - (void)testBoxRequiresCorrectPublicKeyLength {
     NSError *error = nil;
-    NSData *c = ObjcNaClBox(m, n, [NSMutableData dataWithLength:crypto_box_PUBLICKEYBYTES + 1], alicesk, &error);
+    NSData *c = ObjcNaClBox(aliceMessage, nonce, [NSMutableData dataWithLength:crypto_box_PUBLICKEYBYTES + 1], alicesk, &error);
     STAssertNil(c, nil, @"cipher");
     AssertError(error, 2, ObjcNaClErrorDomain, @"incorrect public-key length");
 }
 
 - (void)testBoxRequiresCorrectSecretKeyLength {
     NSError *error = nil;
-    NSData *c = ObjcNaClBox(m, n, bobpk, [NSMutableData dataWithLength:crypto_box_SECRETKEYBYTES - 1], &error);
+    NSData *c = ObjcNaClBox(aliceMessage, nonce, bobpk, [NSMutableData dataWithLength:crypto_box_SECRETKEYBYTES - 1], &error);
     STAssertNil(c, nil, @"cipher");
     AssertError(error, 3, ObjcNaClErrorDomain, @"incorrect secret-key length");
 }
 
 - (void)testBoxOpen {
     NSError *error = nil;
-    NSData *c = HEX2DATA("bb9fa648e55b759aeaf62785214fedf4d3d60a6bfc40661a7ec0cc4493");
-    m = ObjcNaClBoxOpen(c, n, alicepk, bobsk, &error);
-    STAssertEqualObjects(m, STR2DATA("Hello, World!"), @"message"); //48656c6c6f2c20576f726c6421
+    NSData *m = ObjcNaClBoxOpen(aliceCipher, nonce, alicepk, bobsk, &error);
+    STAssertEqualObjects(m, aliceMessage, @"message"); //48656c6c6f2c20576f726c6421
     STAssertEqualObjects(error, nil, nil);
 }
 
 - (void)testBoxOpenRequiresCorrectNonceLength {
     NSError *error = nil;
-    NSData *c = HEX2DATA("bb9fa648e55b759aeaf62785214fedf4d3d60a6bfc40661a7ec0cc4493");
-    n = [NSMutableData dataWithLength:23];
-    m = ObjcNaClBoxOpen(c, n, alicepk, bobsk, &error);
+    nonce = [NSMutableData dataWithLength:23];
+    NSData *m = ObjcNaClBoxOpen(aliceCipher, nonce, alicepk, bobsk, &error);
     STAssertNil(m, nil, @"message");
     AssertError(error, 1, ObjcNaClErrorDomain, @"incorrect nonce length");
 }
 
 - (void)testBoxOpenRequiresCorrectPublicKeyLength {
     NSError *error = nil;
-    NSData *c = HEX2DATA("bb9fa648e55b759aeaf62785214fedf4d3d60a6bfc40661a7ec0cc4493");
-    m = ObjcNaClBoxOpen(c, n, [NSMutableData dataWithLength:crypto_box_PUBLICKEYBYTES + 1], bobsk, &error);
+    NSData *m = ObjcNaClBoxOpen(aliceCipher, nonce, [NSMutableData dataWithLength:crypto_box_PUBLICKEYBYTES + 1], bobsk, &error);
     STAssertNil(m, nil, @"message");
     AssertError(error, 2, ObjcNaClErrorDomain, @"incorrect public-key length");
 }
 
 - (void)testBoxOpenRequiresCorrectSecretKeyLength {
     NSError *error = nil;
-    NSData *c = HEX2DATA("bb9fa648e55b759aeaf62785214fedf4d3d60a6bfc40661a7ec0cc4493");
-    m = ObjcNaClBoxOpen(c, n, alicepk, [NSMutableData dataWithLength:crypto_box_PUBLICKEYBYTES - 1], &error);
+    NSData *m = ObjcNaClBoxOpen(aliceCipher, nonce, alicepk, [NSMutableData dataWithLength:crypto_box_PUBLICKEYBYTES - 1], &error);
     STAssertNil(m, nil, @"message");
     AssertError(error, 3, ObjcNaClErrorDomain, @"incorrect secret-key length");
 }
@@ -149,7 +147,7 @@ static int hexchar2value(unsigned char c);
 
 - (void)testBox {
     NSMutableData *m = [NSMutableData dataWithLength:crypto_box_ZEROBYTES];
-    [m appendBytes:"Hello, World!" length:13];
+    [m appendData:STR2DATA("Hello, World!")];
     NSMutableData *c = [NSMutableData dataWithLength:[m length]];
 
     int r = crypto_box([c mutableBytes], [m bytes], [m length], [n bytes], [bobpk bytes], [alicesk bytes]);
