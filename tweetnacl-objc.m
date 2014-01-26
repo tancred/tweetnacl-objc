@@ -43,6 +43,11 @@ NSData *ObjcNaClBoxOpen(NSData *c, NSData *n, NSData *pk, NSData *sk, NSError **
 
     NSMutableData *m = [NSMutableData dataWithLength:[cc length]];
     int r = crypto_box_open([m mutableBytes], [cc bytes], [cc length], [n bytes], [pk bytes], [sk bytes]);
+    if (r != 0) {
+        if (anError) *anError = CreateError(r, @"ciphertext verification failed");
+        return nil;
+    }
+
     return [m subdataWithRange:NSMakeRange(crypto_box_ZEROBYTES, [m length] - crypto_box_ZEROBYTES)];
 }
 

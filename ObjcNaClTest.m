@@ -121,6 +121,36 @@ static int hexchar2value(unsigned char c);
     AssertError(error, 3, ObjcNaClErrorDomain, @"incorrect secret-key length");
 }
 
+- (void)testBoxOpenFailsWithBadPublicKey {
+    NSError *error = nil;
+    NSData *m = ObjcNaClBoxOpen(aliceCipher, nonce, bobpk, bobsk, &error);
+    STAssertNil(m, nil, @"message");
+    AssertError(error, -1, ObjcNaClErrorDomain, @"ciphertext verification failed");
+}
+
+- (void)testBoxOpenFailsWithBadSecretKey {
+    NSError *error = nil;
+    NSData *m = ObjcNaClBoxOpen(aliceCipher, nonce, alicepk, alicesk, &error);
+    STAssertNil(m, nil, @"message");
+    AssertError(error, -1, ObjcNaClErrorDomain, @"ciphertext verification failed");
+}
+
+- (void)testBoxOpenFailsWithBadNonce {
+    NSError *error = nil;
+    nonce = HEX2DATA("434343434343434343434343434343434343434343434344");
+    NSData *m = ObjcNaClBoxOpen(aliceCipher, nonce, alicepk, bobsk, &error);
+    STAssertNil(m, nil, @"message");
+    AssertError(error, -1, ObjcNaClErrorDomain, @"ciphertext verification failed");
+}
+
+- (void)testBoxOpenFailsWithChangedCipher {
+    NSError *error = nil;
+    aliceCipher  = HEX2DATA("bb9fa648e55b759aeaf62785214fedf4d3d60a6bfc40661a7ec0cc4494");
+    NSData *m = ObjcNaClBoxOpen(aliceCipher, nonce, alicepk, bobsk, &error);
+    STAssertNil(m, nil, @"message");
+    AssertError(error, -1, ObjcNaClErrorDomain, @"ciphertext verification failed");
+}
+
 @end
 
 
