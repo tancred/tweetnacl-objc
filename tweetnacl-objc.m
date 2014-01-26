@@ -12,7 +12,7 @@ NSData *ObjcNaClBoxKeypair(NSData **aSecretKey, NSError **anError) {
     NSMutableData *sk = [NSMutableData dataWithLength:crypto_box_SECRETKEYBYTES];
     int r = crypto_box_keypair([pk mutableBytes], [sk mutableBytes]);
     if (r != 0) {
-        if (anError) *anError = [NSError errorWithDomain:ObjcNaClErrorDomain code:r userInfo:nil];
+        if (anError) *anError = CreateError(r, @"xxx: crypto_box_keypair failed");
         return nil;
     }
     if (aSecretKey) *aSecretKey = sk;
@@ -28,7 +28,7 @@ NSData *ObjcNaClBox(NSData *m, NSData *n, NSData *pk, NSData *sk, NSError **anEr
     NSMutableData *c = [NSMutableData dataWithLength:[mm length]];
     int r = crypto_box([c mutableBytes], [mm bytes], [mm length], [n bytes], [pk bytes], [sk bytes]);
     if (r != 0) {
-        if (anError) *anError = [NSError errorWithDomain:ObjcNaClErrorDomain code:r userInfo:nil];
+        if (anError) *anError = CreateError(r, @"xxx: crypto_box failed");
         return nil;
     }
 
