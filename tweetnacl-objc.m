@@ -7,6 +7,30 @@ static BOOL IsValidNonce(NSData *n, NSError **anError);
 static BOOL IsValidPublicKey(NSData *n, NSError **anError);
 static BOOL IsValidSecretKey(NSData *n, NSError **anError);
 
+@interface CryptoBoxPublicKey ()
+@property(copy,nonatomic) NSData *keyData;
+@end
+
+
+@implementation CryptoBoxPublicKey : NSObject
+
++ (instancetype)keyWithData:(NSData *)someData error:(NSError **)anError {
+    return [[[self class] alloc] initWithData:someData error:anError];
+}
+
+- (id)initWithData:(NSData *)someData error:(NSError **)anError {
+    if (!([super init])) return nil;
+    if ([someData length] != crypto_box_PUBLICKEYBYTES) {
+        if (anError) *anError = CreateError(2, @"incorrect public-key length");
+        return nil;
+    }
+    self.keyData = someData;
+    return self;
+}
+
+@end
+
+
 NSData *ObjcNaClBoxKeypair(NSData **aSecretKey, NSError **anError) {
     NSMutableData *pk = [NSMutableData dataWithLength:crypto_box_PUBLICKEYBYTES];
     NSMutableData *sk = [NSMutableData dataWithLength:crypto_box_SECRETKEYBYTES];

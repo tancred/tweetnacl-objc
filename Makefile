@@ -10,13 +10,15 @@ tests: \
 	tweetnacl-objc.o \
 	tweetnacl.o \
 	randombytes_deterministic.o \
-	ObjcNaClTest.o
+	ObjcNaClTest.o \
+	CryptoBoxTest.o
 	$(CC) -o $@ $(CFLAGS) $^ -framework Foundation -framework SenTestingKit
 
 tests.o: \
 	tests.m
 
-ObjcNaClTest.o: ObjcNaClTest.m tweetnacl-objc.h
+ObjcNaClTest.o: ObjcNaClTest.m tweetnacl-objc.h tweetnacl.h
+CryptoBoxTest.o: CryptoBoxTest.m tweetnacl-objc.h
 
 tweetnacl-objc.o: \
 	tweetnacl-objc.m \
