@@ -14,6 +14,13 @@ NSData *ObjcNaClBoxAfterNM(NSData *m, NSData *n, NSData *k, NSError **error);
 - (id)initWithData:(NSData *)data error:(NSError **)error;
 @end
 
+@interface CryptoBoxSecretKey : NSObject
+@property(copy,readonly,nonatomic) NSData *keyData;
++ (instancetype)keyWithData:(NSData *)data error:(NSError **)error;
+- (id)initWithData:(NSData *)data error:(NSError **)error;
+- (CryptoBoxPublicKey *)publicKey;
+@end
+
 extern NSString * const ObjcNaClErrorDomain;
 
 /*

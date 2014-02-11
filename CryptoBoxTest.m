@@ -42,11 +42,38 @@ static int hexchar2value(unsigned char c);
     STAssertNil([CryptoBoxPublicKey keyWithData:STR2DATA("too short") error:NULL], nil);
 }
 
-// test private key throws on bad length
-// test private key data
-// test private key creates public key
+- (void)testSecretKey {
+    NSData *data = HEX2DATA("0404040404040404040404040404040404040404040404040404040404040404");
+    CryptoBoxSecretKey *sk = [CryptoBoxSecretKey keyWithData:data error:NULL];
+    STAssertNotNil(sk, nil);
+    STAssertEqualObjects([data mutableCopy], [sk keyData], nil);
+}
 
-// test generate private key
+- (void)testSecretKeyReturnsErrorOnBadLength {
+    NSError *error = nil;
+    CryptoBoxSecretKey *sk = [CryptoBoxSecretKey keyWithData:STR2DATA("too short") error:&error];
+    STAssertNil(sk, nil);
+    AssertError(error, 3, ObjcNaClErrorDomain, @"incorrect secret-key length");
+}
+
+- (void)testSecretKeyErrorIgnoresErrorParam {
+    STAssertNil([CryptoBoxSecretKey keyWithData:STR2DATA("too short") error:NULL], nil);
+}
+
+- (void)testSecretKeyCreatesPublicKey {
+    NSData *data = HEX2DATA("0404040404040404040404040404040404040404040404040404040404040404");
+    CryptoBoxSecretKey *sk = [CryptoBoxSecretKey keyWithData:data error:NULL];
+    CryptoBoxPublicKey *pk = [sk publicKey];
+    STAssertNotNil(pk, nil);
+    STAssertEqualObjects(HEX2DATA("ac01b2209e86354fb853237b5de0f4fab13c7fcbf433a61c019369617fecf10b"), [pk keyData], nil);
+}
+
+- (void)testGenerateSecretKey {
+    CryptoBoxSecretKey *sk = [CryptoBoxSecretKey new];
+    STAssertNotNil(sk, nil);
+    STAssertEqualObjects(HEX2DATA("0303030303030303030303030303030303030303030303030303030303030303"), [sk keyData], nil);
+    STAssertEqualObjects(HEX2DATA("5dfedd3b6bd47f6fa28ee15d969d5bb0ea53774d488bdaf9df1c6e0124b3ef22"), [[sk publicKey] keyData], nil);
+}
 
 @end
 

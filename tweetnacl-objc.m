@@ -7,8 +7,14 @@ static BOOL IsValidNonce(NSData *n, NSError **anError);
 static BOOL IsValidPublicKey(NSData *n, NSError **anError);
 static BOOL IsValidSecretKey(NSData *n, NSError **anError);
 
+
 @interface CryptoBoxPublicKey ()
 @property(copy,nonatomic) NSData *keyData;
+@end
+
+@interface CryptoBoxSecretKey ()
+@property(copy,nonatomic) NSData *keyData;
+@property(strong,nonatomic) CryptoBoxPublicKey *publicKey;
 @end
 
 
@@ -26,6 +32,45 @@ static BOOL IsValidSecretKey(NSData *n, NSError **anError);
     }
     self.keyData = someData;
     return self;
+}
+
+@end
+
+
+@implementation CryptoBoxSecretKey : NSObject
+
++ (instancetype)keyWithData:(NSData *)someData error:(NSError **)anError {
+    return [[[self class] alloc] initWithData:someData error:anError];
+}
+
+- (id)initWithData:(NSData *)someData error:(NSError **)anError {
+    if (!([super init])) return nil;
+    if ([someData length] != crypto_box_SECRETKEYBYTES) {
+        if (anError) *anError = CreateError(3, @"incorrect secret-key length");
+        return nil;
+    }
+    self.keyData = someData;
+    return self;
+}
+
+- (id)init {
+    if (!([super init])) return nil;
+
+    NSMutableData *pk = [NSMutableData dataWithLength:crypto_box_PUBLICKEYBYTES];
+    NSMutableData *sk = [NSMutableData dataWithLength:crypto_box_SECRETKEYBYTES];
+    crypto_box_keypair([pk mutableBytes], [sk mutableBytes]);
+    self.keyData = sk;
+    self.publicKey = [[CryptoBoxPublicKey alloc] initWithData:pk error:NULL];
+    return self;
+}
+
+- (CryptoBoxPublicKey *)publicKey {
+    if (!_publicKey) {
+        NSMutableData *pk = [NSMutableData dataWithLength:crypto_box_PUBLICKEYBYTES];
+        crypto_scalarmult_base([pk mutableBytes],[self.keyData bytes]);
+        self.publicKey = [CryptoBoxPublicKey keyWithData:pk error:NULL];
+    }
+    return _publicKey;
 }
 
 @end
