@@ -79,6 +79,45 @@ static BOOL IsValidSecretKey(NSData *n, NSError **anError);
 @end
 
 
+@interface CryptoBox ()
+@property(strong) CryptoBoxSecretKey *secretKey;
+@property(strong) CryptoBoxPublicKey *publicKey;
+@end
+
+@implementation CryptoBox
++ (instancetype)boxWithSecretKey:(CryptoBoxSecretKey *)aSecretKey publicKey:(CryptoBoxPublicKey *)aPublicKey {
+    return [[self alloc] initWithSecretKey:aSecretKey publicKey:aPublicKey];
+}
+
+- (id)initWithSecretKey:(CryptoBoxSecretKey *)aSecretKey publicKey:(CryptoBoxPublicKey *)aPublicKey {
+    if (!(self = [super init])) return nil;
+    if (![aSecretKey isKindOfClass:[CryptoBoxSecretKey class]]) [NSException raise:NSInvalidArgumentException format:@"invalid secret-key"];
+    if (![aPublicKey isKindOfClass:[CryptoBoxPublicKey class]]) [NSException raise:NSInvalidArgumentException format:@"invalid public-key"];
+    self.secretKey = aSecretKey;
+    self.publicKey = aPublicKey;
+    return self;
+}
+
+- (NSData *)encryptMessage:(NSData *)aMessage withNonce:(NSData *)aNonce error:(NSError **)anError {
+    if (![aMessage isKindOfClass:[NSData class]]) [NSException raise:NSInvalidArgumentException format:@"invalid message"];
+    if (![aNonce isKindOfClass:[NSData class]] || [aNonce length] != crypto_box_NONCEBYTES) [NSException raise:NSInvalidArgumentException format:@"invalid nonce"];
+
+    NSMutableData *m = [NSMutableData dataWithLength:crypto_box_ZEROBYTES];
+    [m appendData:aMessage];
+
+    NSMutableData *c = [NSMutableData dataWithLength:[m length]];
+    int r = crypto_box([c mutableBytes], [m bytes], [m length], [aNonce bytes], [self.publicKey.keyData bytes], [self.secretKey.keyData bytes]);
+    if (r != 0) {
+        if (anError) *anError = CreateError(r, @"xxx: crypto_box failed");
+        return nil;
+    }
+
+    return [c subdataWithRange:NSMakeRange(crypto_box_BOXZEROBYTES, [c length] - crypto_box_BOXZEROBYTES)];
+}
+
+@end
+
+
 NSData *ObjcNaClBoxKeypair(NSData **aSecretKey, NSError **anError) {
     NSMutableData *pk = [NSMutableData dataWithLength:crypto_box_PUBLICKEYBYTES];
     NSMutableData *sk = [NSMutableData dataWithLength:crypto_box_SECRETKEYBYTES];

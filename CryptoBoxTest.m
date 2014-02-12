@@ -21,6 +21,47 @@ static int hexchar2value(unsigned char c);
 @interface CryptoBoxKeyTest : SenTestCase
 @end
 
+@interface CryptoBoxTest : SenTestCase
+@property(strong) CryptoBoxSecretKey *alicesKey;
+@property(strong) CryptoBoxSecretKey *bobsKey;
+@property(strong) NSData *nonce;
+@property(strong) NSData *aliceMessage;
+@property(strong) NSData *aliceCipher;
+@end
+
+
+@implementation CryptoBoxTest
+@synthesize alicesKey, bobsKey, nonce, aliceMessage, aliceCipher;
+
+- (void)setUp {
+    alicesKey    = [CryptoBoxSecretKey keyWithData:HEX2DATA("0303030303030303030303030303030303030303030303030303030303030303") error:NULL];
+    bobsKey      = [CryptoBoxSecretKey keyWithData:HEX2DATA("0404040404040404040404040404040404040404040404040404040404040404") error:NULL];
+    nonce        = HEX2DATA("434343434343434343434343434343434343434343434343");
+    aliceMessage = STR2DATA("Hello, World!");
+    aliceCipher  = HEX2DATA("bb9fa648e55b759aeaf62785214fedf4d3d60a6bfc40661a7ec0cc4493");
+}
+
+- (void)testBox {
+    CryptoBox *alicesBox = [CryptoBox boxWithSecretKey:alicesKey publicKey:[bobsKey publicKey]];
+    NSError *error = nil;
+    NSData *c = [alicesBox encryptMessage:aliceMessage withNonce:nonce error:&error];
+    STAssertEqualObjects(c, aliceCipher, @"cipher");
+    STAssertEqualObjects(error, nil, nil);
+}
+
+- (void)testBoxRaisesOnInvalidKeyArguments {
+    STAssertThrowsSpecificNamed([CryptoBox boxWithSecretKey:nil publicKey:nil], NSException, NSInvalidArgumentException, @"secret key");
+    STAssertThrowsSpecificNamed([CryptoBox boxWithSecretKey:alicesKey publicKey:nil], NSException, NSInvalidArgumentException, @"public key");
+}
+
+- (void)testBoxRaisesOnInvalidEncryptArguments {
+    CryptoBox *alicesBox = [CryptoBox boxWithSecretKey:alicesKey publicKey:[bobsKey publicKey]];
+    STAssertThrowsSpecificNamed([alicesBox encryptMessage:nil withNonce:nonce error:NULL], NSException, NSInvalidArgumentException, @"message");
+    STAssertThrowsSpecificNamed([alicesBox encryptMessage:aliceMessage withNonce:nil error:NULL], NSException, NSInvalidArgumentException, @"nonce");
+}
+
+@end
+
 
 @implementation CryptoBoxKeyTest
 
