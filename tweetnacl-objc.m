@@ -8,28 +8,23 @@ static BOOL IsValidPublicKey(NSData *n, NSError **anError);
 static BOOL IsValidSecretKey(NSData *n, NSError **anError);
 
 
-@interface CryptoBoxPublicKey ()
+@interface CryptoBoxKey ()
 @property(copy,nonatomic) NSData *keyData;
 @end
 
 @interface CryptoBoxSecretKey ()
-@property(copy,nonatomic) NSData *keyData;
 @property(strong,nonatomic) CryptoBoxPublicKey *publicKey;
 @end
 
 
-@implementation CryptoBoxPublicKey : NSObject
+@implementation CryptoBoxKey
 
 + (instancetype)keyWithData:(NSData *)someData error:(NSError **)anError {
-    return [[[self class] alloc] initWithData:someData error:anError];
+    return [[self alloc] initWithData:someData error:anError];
 }
 
 - (id)initWithData:(NSData *)someData error:(NSError **)anError {
-    if (!([super init])) return nil;
-    if ([someData length] != crypto_box_PUBLICKEYBYTES) {
-        if (anError) *anError = CreateError(2, @"incorrect public-key length");
-        return nil;
-    }
+    if (!(self = [super init])) return nil;
     self.keyData = someData;
     return self;
 }
@@ -37,25 +32,33 @@ static BOOL IsValidSecretKey(NSData *n, NSError **anError);
 @end
 
 
-@implementation CryptoBoxSecretKey : NSObject
-
-+ (instancetype)keyWithData:(NSData *)someData error:(NSError **)anError {
-    return [[[self class] alloc] initWithData:someData error:anError];
-}
+@implementation CryptoBoxPublicKey
 
 - (id)initWithData:(NSData *)someData error:(NSError **)anError {
-    if (!([super init])) return nil;
-    if ([someData length] != crypto_box_SECRETKEYBYTES) {
+    if (!(self = [super initWithData:someData error:anError])) return nil;
+    if ([self.keyData length] != crypto_box_PUBLICKEYBYTES) {
+        if (anError) *anError = CreateError(2, @"incorrect public-key length");
+        return nil;
+    }
+    return self;
+}
+
+@end
+
+
+@implementation CryptoBoxSecretKey
+
+- (id)initWithData:(NSData *)someData error:(NSError **)anError {
+    if (!(self = [super initWithData:someData error:anError])) return nil;
+    if ([self.keyData length] != crypto_box_SECRETKEYBYTES) {
         if (anError) *anError = CreateError(3, @"incorrect secret-key length");
         return nil;
     }
-    self.keyData = someData;
     return self;
 }
 
 - (id)init {
-    if (!([super init])) return nil;
-
+    if (!(self = [super init])) return nil;
     NSMutableData *pk = [NSMutableData dataWithLength:crypto_box_PUBLICKEYBYTES];
     NSMutableData *sk = [NSMutableData dataWithLength:crypto_box_SECRETKEYBYTES];
     crypto_box_keypair([pk mutableBytes], [sk mutableBytes]);
