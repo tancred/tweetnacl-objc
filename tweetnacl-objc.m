@@ -79,6 +79,29 @@ static BOOL IsValidSecretKey(NSData *n, NSError **anError);
 @end
 
 
+@interface CryptoBoxNonce ()
+@property(copy,nonatomic) NSData *nonceData;
+@end
+
+@implementation CryptoBoxNonce
+
++ (instancetype)nonceWithData:(NSData *)someData error:(NSError **)anError {
+    return [[self alloc] initWithData:someData error:anError];
+}
+
+- (id)initWithData:(NSData *)someData error:(NSError **)anError {
+    if (!(self = [super init])) return nil;
+    if ([someData length] != crypto_box_NONCEBYTES) {
+        if (anError) *anError = CreateError(1, @"incorrect nonce length");
+        return nil;
+    }
+    self.nonceData = someData;
+    return self;
+}
+
+@end
+
+
 @interface CryptoBox ()
 @property(strong) CryptoBoxSecretKey *secretKey;
 @property(strong) CryptoBoxPublicKey *publicKey;

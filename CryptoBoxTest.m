@@ -18,15 +18,18 @@ static NSData *HEX2DATA(const char *x);
 static int hexchar2value(unsigned char c);
 
 
-@interface CryptoBoxKeyTest : SenTestCase
-@end
-
 @interface CryptoBoxTest : SenTestCase
 @property(strong) CryptoBoxSecretKey *alicesKey;
 @property(strong) CryptoBoxSecretKey *bobsKey;
 @property(strong) NSData *nonce;
 @property(strong) NSData *aliceMessage;
 @property(strong) NSData *aliceCipher;
+@end
+
+@interface CryptoBoxKeyTest : SenTestCase
+@end
+
+@interface CryptoBoxNonceTest : SenTestCase
 @end
 
 
@@ -114,6 +117,29 @@ static int hexchar2value(unsigned char c);
     STAssertNotNil(sk, nil);
     STAssertEqualObjects(HEX2DATA("0303030303030303030303030303030303030303030303030303030303030303"), [sk keyData], nil);
     STAssertEqualObjects(HEX2DATA("5dfedd3b6bd47f6fa28ee15d969d5bb0ea53774d488bdaf9df1c6e0124b3ef22"), [[sk publicKey] keyData], nil);
+}
+
+@end
+
+
+@implementation CryptoBoxNonceTest
+
+- (void)testValid {
+    NSData *data = HEX2DATA("434343434343434343434343434343434343434343434343");
+    CryptoBoxNonce *nonce = [CryptoBoxNonce nonceWithData:data error:NULL];
+    STAssertNotNil(nonce, nil);
+    STAssertEqualObjects([data mutableCopy], [nonce nonceData], nil);
+}
+
+- (void)testNonceReturnsErrorOnBadLength {
+    NSError *error = nil;
+    CryptoBoxNonce *nonce = [CryptoBoxNonce nonceWithData:STR2DATA("too short") error:&error];
+    STAssertNil(nonce, nil);
+    AssertError(error, 1, ObjcNaClErrorDomain, @"incorrect nonce length");
+}
+
+- (void)testPublicKeyErrorIgnoresErrorParam {
+    STAssertNil([CryptoBoxNonce nonceWithData:STR2DATA("too short") error:NULL], nil);
 }
 
 @end

@@ -21,6 +21,12 @@ NSData *ObjcNaClBoxAfterNM(NSData *m, NSData *n, NSData *k, NSError **error);
 - (CryptoBoxPublicKey *)publicKey;
 @end
 
+@interface CryptoBoxNonce : NSObject
+@property(copy,readonly,nonatomic) NSData *nonceData;
++ (instancetype)nonceWithData:(NSData *)data error:(NSError **)error;
+- (id)initWithData:(NSData *)data error:(NSError **)error;
+@end
+
 @interface CryptoBox : NSObject
 + (instancetype)boxWithSecretKey:(CryptoBoxSecretKey *)secretKey publicKey:(CryptoBoxPublicKey *)publicKey;
 - (NSData *)encryptMessage:(NSData *)message withNonce:(NSData *)nonce error:(NSError **)error;
