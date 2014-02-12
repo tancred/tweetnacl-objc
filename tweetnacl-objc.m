@@ -121,15 +121,15 @@ static BOOL IsValidSecretKey(NSData *n, NSError **anError);
     return self;
 }
 
-- (NSData *)encryptMessage:(NSData *)aMessage withNonce:(NSData *)aNonce error:(NSError **)anError {
+- (NSData *)encryptMessage:(NSData *)aMessage withNonce:(CryptoBoxNonce *)aNonce error:(NSError **)anError {
     if (![aMessage isKindOfClass:[NSData class]]) [NSException raise:NSInvalidArgumentException format:@"invalid message"];
-    if (![aNonce isKindOfClass:[NSData class]] || [aNonce length] != crypto_box_NONCEBYTES) [NSException raise:NSInvalidArgumentException format:@"invalid nonce"];
+    if (![aNonce isKindOfClass:[CryptoBoxNonce class]]) [NSException raise:NSInvalidArgumentException format:@"invalid nonce"];
 
     NSMutableData *m = [NSMutableData dataWithLength:crypto_box_ZEROBYTES];
     [m appendData:aMessage];
 
     NSMutableData *c = [NSMutableData dataWithLength:[m length]];
-    int r = crypto_box([c mutableBytes], [m bytes], [m length], [aNonce bytes], [self.publicKey.keyData bytes], [self.secretKey.keyData bytes]);
+    int r = crypto_box([c mutableBytes], [m bytes], [m length], [aNonce.nonceData bytes], [self.publicKey.keyData bytes], [self.secretKey.keyData bytes]);
     if (r != 0) {
         if (anError) *anError = CreateError(r, @"xxx: crypto_box failed");
         return nil;

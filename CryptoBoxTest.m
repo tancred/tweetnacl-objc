@@ -21,7 +21,7 @@ static int hexchar2value(unsigned char c);
 @interface CryptoBoxTest : SenTestCase
 @property(strong) CryptoBoxSecretKey *alicesKey;
 @property(strong) CryptoBoxSecretKey *bobsKey;
-@property(strong) NSData *nonce;
+@property(strong) CryptoBoxNonce *nonce;
 @property(strong) NSData *aliceMessage;
 @property(strong) NSData *aliceCipher;
 @end
@@ -39,7 +39,7 @@ static int hexchar2value(unsigned char c);
 - (void)setUp {
     alicesKey    = [CryptoBoxSecretKey keyWithData:HEX2DATA("0303030303030303030303030303030303030303030303030303030303030303") error:NULL];
     bobsKey      = [CryptoBoxSecretKey keyWithData:HEX2DATA("0404040404040404040404040404040404040404040404040404040404040404") error:NULL];
-    nonce        = HEX2DATA("434343434343434343434343434343434343434343434343");
+    nonce        = [CryptoBoxNonce nonceWithData:HEX2DATA("434343434343434343434343434343434343434343434343") error:NULL];
     aliceMessage = STR2DATA("Hello, World!");
     aliceCipher  = HEX2DATA("bb9fa648e55b759aeaf62785214fedf4d3d60a6bfc40661a7ec0cc4493");
 }
