@@ -103,8 +103,7 @@ static BOOL IsValidSecretKey(NSData *n, NSError **anError);
 
 
 @interface CryptoBox ()
-@property(strong) CryptoBoxSecretKey *secretKey;
-@property(strong) CryptoBoxPublicKey *publicKey;
+@property(copy) NSData *k;
 @end
 
 @implementation CryptoBox
@@ -116,8 +115,11 @@ static BOOL IsValidSecretKey(NSData *n, NSError **anError);
     if (!(self = [super init])) return nil;
     if (![aSecretKey isKindOfClass:[CryptoBoxSecretKey class]]) [NSException raise:NSInvalidArgumentException format:@"invalid secret-key"];
     if (![aPublicKey isKindOfClass:[CryptoBoxPublicKey class]]) [NSException raise:NSInvalidArgumentException format:@"invalid public-key"];
-    self.secretKey = aSecretKey;
-    self.publicKey = aPublicKey;
+
+    unsigned char k[crypto_box_BEFORENMBYTES];
+    crypto_box_beforenm(k, [aPublicKey.keyData bytes], [aSecretKey.keyData bytes]);
+    self.k = [NSData dataWithBytes:k length:crypto_box_BEFORENMBYTES];
+
     return self;
 }
 
@@ -129,7 +131,7 @@ static BOOL IsValidSecretKey(NSData *n, NSError **anError);
     [m appendData:aMessage];
 
     NSMutableData *c = [NSMutableData dataWithLength:[m length]];
-    int r = crypto_box([c mutableBytes], [m bytes], [m length], [aNonce.nonceData bytes], [self.publicKey.keyData bytes], [self.secretKey.keyData bytes]);
+    int r = crypto_box_afternm([c mutableBytes], [m bytes], [m length], [aNonce.nonceData bytes], [self.k bytes]);
     if (r != 0) {
         if (anError) *anError = CreateError(r, @"xxx: crypto_box failed");
         return nil;
@@ -146,7 +148,7 @@ static BOOL IsValidSecretKey(NSData *n, NSError **anError);
     [c appendData:aCipher];
 
     NSMutableData *m = [NSMutableData dataWithLength:[c length]];
-    int r = crypto_box_open([m mutableBytes], [c bytes], [c length], [aNonce.nonceData bytes], [self.publicKey.keyData bytes], [self.secretKey.keyData bytes]);
+    int r = crypto_box_open_afternm([m mutableBytes], [c bytes], [c length], [aNonce.nonceData bytes], [self.k bytes]);
     if (r != 0) {
         if (anError) *anError = CreateError(r, @"ciphertext verification failed");
         return nil;
