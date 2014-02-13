@@ -22,6 +22,7 @@
 @interface CryptoBox : NSObject
 + (instancetype)boxWithSecretKey:(CryptoBoxSecretKey *)secretKey publicKey:(CryptoBoxPublicKey *)publicKey;
 - (NSData *)encryptMessage:(NSData *)message withNonce:(CryptoBoxNonce *)nonce error:(NSError **)error;
+- (NSData *)decryptCipher:(NSData *)cipher withNonce:(CryptoBoxNonce *)nonce error:(NSError **)error;
 @end
 
 extern NSString * const ObjcNaClErrorDomain;

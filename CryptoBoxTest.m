@@ -63,6 +63,54 @@ static int hexchar2value(unsigned char c);
     STAssertThrowsSpecificNamed([alicesBox encryptMessage:aliceMessage withNonce:nil error:NULL], NSException, NSInvalidArgumentException, @"nonce");
 }
 
+- (void)testDecrypt {
+    CryptoBox *bobsBox = [CryptoBox boxWithSecretKey:bobsKey publicKey:[alicesKey publicKey]];
+    NSError *error = nil;
+    NSData *m = [bobsBox decryptCipher:aliceCipher withNonce:nonce error:&error];
+    STAssertEqualObjects(m, aliceMessage, @"message"); //48656c6c6f2c20576f726c6421
+    STAssertEqualObjects(error, nil, nil);
+}
+
+- (void)testDecryptRaisesOnInvalidEncryptArguments {
+    CryptoBox *bobsBox = [CryptoBox boxWithSecretKey:bobsKey publicKey:[alicesKey publicKey]];
+    STAssertThrowsSpecificNamed([bobsBox decryptCipher:nil withNonce:nonce error:NULL], NSException, NSInvalidArgumentException, @"message");
+    STAssertThrowsSpecificNamed([bobsBox decryptCipher:aliceCipher withNonce:nil error:NULL], NSException, NSInvalidArgumentException, @"nonce");
+}
+
+- (void)testBoxOpenFailsWithBadPublicKey {
+    CryptoBox *bobsBox = [CryptoBox boxWithSecretKey:bobsKey publicKey:[bobsKey publicKey]];
+    NSError *error = nil;
+    NSData *m = [bobsBox decryptCipher:aliceCipher withNonce:nonce error:&error];
+    STAssertNil(m, nil, @"message");
+    AssertError(error, -1, ObjcNaClErrorDomain, @"ciphertext verification failed");
+}
+
+- (void)testBoxOpenFailsWithBadSecretKey {
+    CryptoBox *bobsBox = [CryptoBox boxWithSecretKey:alicesKey publicKey:[alicesKey publicKey]];
+    NSError *error = nil;
+    NSData *m = [bobsBox decryptCipher:aliceCipher withNonce:nonce error:&error];
+    STAssertNil(m, nil, @"message");
+    AssertError(error, -1, ObjcNaClErrorDomain, @"ciphertext verification failed");
+}
+
+- (void)testBoxOpenFailsWithBadNonce {
+    CryptoBox *bobsBox = [CryptoBox boxWithSecretKey:bobsKey publicKey:[alicesKey publicKey]];
+    NSError *error = nil;
+    nonce = [CryptoBoxNonce nonceWithData:HEX2DATA("434343434343434343434343434343434343434343434344") error:NULL];
+    NSData *m = [bobsBox decryptCipher:aliceCipher withNonce:nonce error:&error];
+    STAssertNil(m, nil, @"message");
+    AssertError(error, -1, ObjcNaClErrorDomain, @"ciphertext verification failed");
+}
+
+- (void)testBoxOpenFailsWithChangedCipher {
+    CryptoBox *bobsBox = [CryptoBox boxWithSecretKey:bobsKey publicKey:[alicesKey publicKey]];
+    NSError *error = nil;
+    aliceCipher  = HEX2DATA("bb9fa648e55b759aeaf62785214fedf4d3d60a6bfc40661a7ec0cc4494");
+    NSData *m = [bobsBox decryptCipher:aliceCipher withNonce:nonce error:&error];
+    STAssertNil(m, nil, @"message");
+    AssertError(error, -1, ObjcNaClErrorDomain, @"ciphertext verification failed");
+}
+
 @end
 
 

@@ -138,6 +138,12 @@ static BOOL IsValidSecretKey(NSData *n, NSError **anError);
     return [c subdataWithRange:NSMakeRange(crypto_box_BOXZEROBYTES, [c length] - crypto_box_BOXZEROBYTES)];
 }
 
+- (NSData *)decryptCipher:(NSData *)aCipher withNonce:(CryptoBoxNonce *)aNonce error:(NSError **)anError {
+    if (![aCipher isKindOfClass:[NSData class]]) [NSException raise:NSInvalidArgumentException format:@"invalid cipher"];
+    if (![aNonce isKindOfClass:[CryptoBoxNonce class]]) [NSException raise:NSInvalidArgumentException format:@"invalid nonce"];
+    return ObjcNaClBoxOpen(aCipher, aNonce.nonceData, self.publicKey.keyData, self.secretKey.keyData, anError);
+}
+
 @end
 
 
