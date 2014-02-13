@@ -44,7 +44,7 @@ static int hexchar2value(unsigned char c);
     aliceCipher  = HEX2DATA("bb9fa648e55b759aeaf62785214fedf4d3d60a6bfc40661a7ec0cc4493");
 }
 
-- (void)testBox {
+- (void)testEncrypt {
     CryptoBox *alicesBox = [CryptoBox boxWithSecretKey:alicesKey publicKey:[bobsKey publicKey]];
     NSError *error = nil;
     NSData *c = [alicesBox encryptMessage:aliceMessage withNonce:nonce error:&error];
@@ -52,12 +52,12 @@ static int hexchar2value(unsigned char c);
     STAssertEqualObjects(error, nil, nil);
 }
 
-- (void)testBoxRaisesOnInvalidKeyArguments {
+- (void)testEncryptRaisesOnInvalidKeyArguments {
     STAssertThrowsSpecificNamed([CryptoBox boxWithSecretKey:nil publicKey:nil], NSException, NSInvalidArgumentException, @"secret key");
     STAssertThrowsSpecificNamed([CryptoBox boxWithSecretKey:alicesKey publicKey:nil], NSException, NSInvalidArgumentException, @"public key");
 }
 
-- (void)testBoxRaisesOnInvalidEncryptArguments {
+- (void)testEncryptRaisesOnInvalidEncryptArguments {
     CryptoBox *alicesBox = [CryptoBox boxWithSecretKey:alicesKey publicKey:[bobsKey publicKey]];
     STAssertThrowsSpecificNamed([alicesBox encryptMessage:nil withNonce:nonce error:NULL], NSException, NSInvalidArgumentException, @"message");
     STAssertThrowsSpecificNamed([alicesBox encryptMessage:aliceMessage withNonce:nil error:NULL], NSException, NSInvalidArgumentException, @"nonce");
