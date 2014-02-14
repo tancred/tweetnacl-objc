@@ -17,7 +17,7 @@ static NSData *STR2DATA(const char *x);
 static NSData *HEX2DATA(const char *x);
 
 
-@interface CryptoBoxTest : SenTestCase
+@interface ObjcNaClBoxTest : SenTestCase
 @property(strong) ObjcNaClBoxSecretKey *alicesKey;
 @property(strong) ObjcNaClBoxSecretKey *bobsKey;
 @property(strong) ObjcNaClBoxNonce *nonce;
@@ -25,14 +25,14 @@ static NSData *HEX2DATA(const char *x);
 @property(strong) NSData *aliceCipher;
 @end
 
-@interface CryptoBoxKeyTest : SenTestCase
+@interface ObjcNaClBoxKeyTest : SenTestCase
 @end
 
-@interface CryptoBoxNonceTest : SenTestCase
+@interface ObjcNaClBoxNonceTest : SenTestCase
 @end
 
 
-@implementation CryptoBoxTest
+@implementation ObjcNaClBoxTest
 @synthesize alicesKey, bobsKey, nonce, aliceMessage, aliceCipher;
 
 - (void)setUp {
@@ -113,7 +113,7 @@ static NSData *HEX2DATA(const char *x);
 @end
 
 
-@implementation CryptoBoxKeyTest
+@implementation ObjcNaClBoxKeyTest
 
 - (void)testPublicKey {
     NSData *data = HEX2DATA("5dfedd3b6bd47f6fa28ee15d969d5bb0ea53774d488bdaf9df1c6e0124b3ef22");
@@ -169,7 +169,7 @@ static NSData *HEX2DATA(const char *x);
 @end
 
 
-@implementation CryptoBoxNonceTest
+@implementation ObjcNaClBoxNonceTest
 
 - (void)testValid {
     NSData *data = HEX2DATA("434343434343434343434343434343434343434343434343");
