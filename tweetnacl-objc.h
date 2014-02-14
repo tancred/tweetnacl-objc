@@ -26,14 +26,3 @@
 @end
 
 extern NSString * const ObjcNaClErrorDomain;
-
-// deprecated
-
-NSData *ObjcNaClBoxKeypair(NSData **sk, NSError **error);
-
-NSData *ObjcNaClBox(NSData *m, NSData *n, NSData *pk, NSData *sk, NSError **error);
-NSData *ObjcNaClBoxOpen(NSData *c, NSData *n, NSData *pk, NSData *sk, NSError **error);
-
-BOOL ObjcNaClBoxBeforeNM(NSData **k, NSData *pk, NSData *sk, NSError **error);
-NSData *ObjcNaClBoxAfterNM(NSData *m, NSData *n, NSData *k, NSError **error);
-

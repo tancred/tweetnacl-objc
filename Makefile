@@ -10,14 +10,15 @@ tests: \
 	tweetnacl-objc.o \
 	tweetnacl.o \
 	randombytes_deterministic.o \
-	ObjcNaClTest.o \
+	NSData+Hex.o \
+	NSData+HexTest.o \
 	CryptoBoxTest.o
 	$(CC) -o $@ $(CFLAGS) $^ -framework Foundation -framework SenTestingKit
 
 tests.o: \
 	tests.m
 
-ObjcNaClTest.o: ObjcNaClTest.m tweetnacl-objc.h tweetnacl.h
+NSData+HexTest.o: NSData+HexTest.m NSData+Hex.h
 CryptoBoxTest.o: CryptoBoxTest.m tweetnacl-objc.h
 
 tweetnacl-objc.o: \
