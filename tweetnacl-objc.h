@@ -1,28 +1,28 @@
 #import <Foundation/Foundation.h>
 
-@interface CryptoBoxKey : NSObject
+@interface ObjcNaClBoxKey : NSObject
 @property(copy,readonly,nonatomic) NSData *keyData;
 + (instancetype)keyWithData:(NSData *)data error:(NSError **)error;
 - (id)initWithData:(NSData *)data error:(NSError **)error;
 @end
 
-@interface CryptoBoxPublicKey : CryptoBoxKey
+@interface ObjcNaClBoxPublicKey : ObjcNaClBoxKey
 @end
 
-@interface CryptoBoxSecretKey : CryptoBoxKey
-- (CryptoBoxPublicKey *)publicKey;
+@interface ObjcNaClBoxSecretKey : ObjcNaClBoxKey
+- (ObjcNaClBoxPublicKey *)publicKey;
 @end
 
-@interface CryptoBoxNonce : NSObject
+@interface ObjcNaClBoxNonce : NSObject
 @property(copy,readonly,nonatomic) NSData *nonceData;
 + (instancetype)nonceWithData:(NSData *)data error:(NSError **)error;
 - (id)initWithData:(NSData *)data error:(NSError **)error;
 @end
 
-@interface CryptoBox : NSObject
-+ (instancetype)boxWithSecretKey:(CryptoBoxSecretKey *)secretKey publicKey:(CryptoBoxPublicKey *)publicKey;
-- (NSData *)encryptMessage:(NSData *)message withNonce:(CryptoBoxNonce *)nonce error:(NSError **)error;
-- (NSData *)decryptCipher:(NSData *)cipher withNonce:(CryptoBoxNonce *)nonce error:(NSError **)error;
+@interface ObjcNaClBox : NSObject
++ (instancetype)boxWithSecretKey:(ObjcNaClBoxSecretKey *)secretKey publicKey:(ObjcNaClBoxPublicKey *)publicKey;
+- (NSData *)encryptMessage:(NSData *)message withNonce:(ObjcNaClBoxNonce *)nonce error:(NSError **)error;
+- (NSData *)decryptCipher:(NSData *)cipher withNonce:(ObjcNaClBoxNonce *)nonce error:(NSError **)error;
 @end
 
 extern NSString * const ObjcNaClErrorDomain;

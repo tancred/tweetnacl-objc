@@ -7,12 +7,12 @@ the bindings should work with that library as well.
 
 This is work in progress and the bindings are not usable yet. Stay tuned for updates.
 
-## Public-key authenticated encryption: CryptoBox
+## Public-key authenticated encryption: ObjcNaClBox
 
-A ```CryptoBox``` is one of the two end-points of a _public-key authenticated encryption_ communications channel. Each end-point holds 1) its secret key and 2) the public key corresponding to the secret key of the other end-point.
+An ```ObjcNaClBox``` is one of the two end-points of a _public-key authenticated encryption_ communications channel. Each end-point holds 1) its secret key and 2) the public key corresponding to the secret key of the other end-point.
 
-```CryptoBoxPublicKey``` is the public part of a keypair. It is derived completely from its corresponding secret key.
-```CryptoBoxSecretKey``` is the secret part of a keypair. Must be kept secret.
+```ObjcNaClBoxPublicKey``` is the public part of a keypair. It is derived completely from its corresponding secret key.
+```ObjcNaClBoxSecretKey``` is the secret part of a keypair. Must be kept secret.
 
 ### An example
 
@@ -20,19 +20,19 @@ Alice wants to send a secret message to Bob.
 
 1. Alice obtains her secret key and Bobs public key.
     ```
-    CryptoBoxSecretKey *alicesSecretKey = [CryptoBoxSecretKey keyWithData:sk error:&error];
-    CryptoBoxPublicKey *bobsPublicKey = [CryptoBoxPublicKey keyWithData:pk error:&error];
+    ObjcNaClBoxSecretKey *alicesSecretKey = [ObjcNaClBoxSecretKey keyWithData:sk error:&error];
+    ObjcNaClBoxPublicKey *bobsPublicKey = [ObjcNaClBoxPublicKey keyWithData:pk error:&error];
     ```
 
 2. Next, she creates her communications end-point.
     ```
-    CryptoBox *box = [CryptoBox boxWithSecretKey:alicesSecretKey publicKey:bobsPublicKey];
+    ObjcNaClBox *box = [ObjcNaClBox boxWithSecretKey:alicesSecretKey publicKey:bobsPublicKey];
     ```
 
 3. Finally, she encrypts the ```message``` with a nonce and sends the ```nonce``` and resulting ```cipher```to Bob, e.g., over a TCP socket.
     ```
     NSData *message = ...;
-    CryptoBoxNonce *nonce = [CryptoBoxNonce nonceWithData:n error:&error];
+    ObjcNaClBoxNonce *nonce = [ObjcNaClBoxNonce nonceWithData:n error:&error];
     NSData *cipher = [box encryptMessage:message withNonce:nonce error:&error];
     ```
 
@@ -41,14 +41,14 @@ Bob recieves a message purportedly from Alice.
 1. Bob extracts a ```cipher``` and ```nonce``` from the message.
     ```
     NSData *cipher = ...;
-    CryptoBoxNonce *nonce = [CryptoBoxNonce nonceWithData:n error:&error];
+    ObjcNaClBoxNonce *nonce = [ObjcNaClBoxNonce nonceWithData:n error:&error];
     ```
 
 2. Bob obtains his secret key and Alice's public key and creates his encryption box.
     ```
-    CryptoBoxSecretKey *bobsSecretKey = [CryptoBoxSecretKey keyWithData:sk error:&error];
-    CryptoBoxPublicKey *alicesPublicKey = [CryptoBoxPublicKey keyWithData:pk error:&error];
-    CryptoBox *box = [CryptoBox boxWithSecretKey:bobsSecretKey publicKey:alicesPublicKey];
+    ObjcNaClBoxSecretKey *bobsSecretKey = [ObjcNaClBoxSecretKey keyWithData:sk error:&error];
+    ObjcNaClBoxPublicKey *alicesPublicKey = [ObjcNaClBoxPublicKey keyWithData:pk error:&error];
+    ObjcNaClBox *box = [ObjcNaClBox boxWithSecretKey:bobsSecretKey publicKey:alicesPublicKey];
     ```
 
 3. He decrypts the message.

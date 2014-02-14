@@ -4,16 +4,16 @@
 static NSError *CreateError(NSInteger code, NSString *descriptionFormat, ...)  NS_FORMAT_FUNCTION(2, 3);
 
 
-@interface CryptoBoxKey ()
+@interface ObjcNaClBoxKey ()
 @property(copy,nonatomic) NSData *keyData;
 @end
 
-@interface CryptoBoxSecretKey ()
-@property(strong,nonatomic) CryptoBoxPublicKey *publicKey;
+@interface ObjcNaClBoxSecretKey ()
+@property(strong,nonatomic) ObjcNaClBoxPublicKey *publicKey;
 @end
 
 
-@implementation CryptoBoxKey
+@implementation ObjcNaClBoxKey
 
 + (instancetype)keyWithData:(NSData *)someData error:(NSError **)anError {
     return [[self alloc] initWithData:someData error:anError];
@@ -28,7 +28,7 @@ static NSError *CreateError(NSInteger code, NSString *descriptionFormat, ...)  N
 @end
 
 
-@implementation CryptoBoxPublicKey
+@implementation ObjcNaClBoxPublicKey
 
 - (id)initWithData:(NSData *)someData error:(NSError **)anError {
     if (!(self = [super initWithData:someData error:anError])) return nil;
@@ -42,7 +42,7 @@ static NSError *CreateError(NSInteger code, NSString *descriptionFormat, ...)  N
 @end
 
 
-@implementation CryptoBoxSecretKey
+@implementation ObjcNaClBoxSecretKey
 
 - (id)initWithData:(NSData *)someData error:(NSError **)anError {
     if (!(self = [super initWithData:someData error:anError])) return nil;
@@ -59,15 +59,15 @@ static NSError *CreateError(NSInteger code, NSString *descriptionFormat, ...)  N
     NSMutableData *sk = [NSMutableData dataWithLength:crypto_box_SECRETKEYBYTES];
     crypto_box_keypair([pk mutableBytes], [sk mutableBytes]);
     self.keyData = sk;
-    self.publicKey = [[CryptoBoxPublicKey alloc] initWithData:pk error:NULL];
+    self.publicKey = [[ObjcNaClBoxPublicKey alloc] initWithData:pk error:NULL];
     return self;
 }
 
-- (CryptoBoxPublicKey *)publicKey {
+- (ObjcNaClBoxPublicKey *)publicKey {
     if (!_publicKey) {
         NSMutableData *pk = [NSMutableData dataWithLength:crypto_box_PUBLICKEYBYTES];
         crypto_scalarmult_base([pk mutableBytes],[self.keyData bytes]);
-        self.publicKey = [CryptoBoxPublicKey keyWithData:pk error:NULL];
+        self.publicKey = [ObjcNaClBoxPublicKey keyWithData:pk error:NULL];
     }
     return _publicKey;
 }
@@ -75,11 +75,11 @@ static NSError *CreateError(NSInteger code, NSString *descriptionFormat, ...)  N
 @end
 
 
-@interface CryptoBoxNonce ()
+@interface ObjcNaClBoxNonce ()
 @property(copy,nonatomic) NSData *nonceData;
 @end
 
-@implementation CryptoBoxNonce
+@implementation ObjcNaClBoxNonce
 
 + (instancetype)nonceWithData:(NSData *)someData error:(NSError **)anError {
     return [[self alloc] initWithData:someData error:anError];
@@ -98,19 +98,19 @@ static NSError *CreateError(NSInteger code, NSString *descriptionFormat, ...)  N
 @end
 
 
-@interface CryptoBox ()
+@interface ObjcNaClBox ()
 @property(copy) NSData *k;
 @end
 
-@implementation CryptoBox
-+ (instancetype)boxWithSecretKey:(CryptoBoxSecretKey *)aSecretKey publicKey:(CryptoBoxPublicKey *)aPublicKey {
+@implementation ObjcNaClBox
++ (instancetype)boxWithSecretKey:(ObjcNaClBoxSecretKey *)aSecretKey publicKey:(ObjcNaClBoxPublicKey *)aPublicKey {
     return [[self alloc] initWithSecretKey:aSecretKey publicKey:aPublicKey];
 }
 
-- (id)initWithSecretKey:(CryptoBoxSecretKey *)aSecretKey publicKey:(CryptoBoxPublicKey *)aPublicKey {
+- (id)initWithSecretKey:(ObjcNaClBoxSecretKey *)aSecretKey publicKey:(ObjcNaClBoxPublicKey *)aPublicKey {
     if (!(self = [super init])) return nil;
-    if (![aSecretKey isKindOfClass:[CryptoBoxSecretKey class]]) [NSException raise:NSInvalidArgumentException format:@"invalid secret-key"];
-    if (![aPublicKey isKindOfClass:[CryptoBoxPublicKey class]]) [NSException raise:NSInvalidArgumentException format:@"invalid public-key"];
+    if (![aSecretKey isKindOfClass:[ObjcNaClBoxSecretKey class]]) [NSException raise:NSInvalidArgumentException format:@"invalid secret-key"];
+    if (![aPublicKey isKindOfClass:[ObjcNaClBoxPublicKey class]]) [NSException raise:NSInvalidArgumentException format:@"invalid public-key"];
 
     unsigned char k[crypto_box_BEFORENMBYTES];
     crypto_box_beforenm(k, [aPublicKey.keyData bytes], [aSecretKey.keyData bytes]);
@@ -119,9 +119,9 @@ static NSError *CreateError(NSInteger code, NSString *descriptionFormat, ...)  N
     return self;
 }
 
-- (NSData *)encryptMessage:(NSData *)aMessage withNonce:(CryptoBoxNonce *)aNonce error:(NSError **)anError {
+- (NSData *)encryptMessage:(NSData *)aMessage withNonce:(ObjcNaClBoxNonce *)aNonce error:(NSError **)anError {
     if (![aMessage isKindOfClass:[NSData class]]) [NSException raise:NSInvalidArgumentException format:@"invalid message"];
-    if (![aNonce isKindOfClass:[CryptoBoxNonce class]]) [NSException raise:NSInvalidArgumentException format:@"invalid nonce"];
+    if (![aNonce isKindOfClass:[ObjcNaClBoxNonce class]]) [NSException raise:NSInvalidArgumentException format:@"invalid nonce"];
 
     NSMutableData *m = [NSMutableData dataWithLength:crypto_box_ZEROBYTES];
     [m appendData:aMessage];
@@ -136,9 +136,9 @@ static NSError *CreateError(NSInteger code, NSString *descriptionFormat, ...)  N
     return [c subdataWithRange:NSMakeRange(crypto_box_BOXZEROBYTES, [c length] - crypto_box_BOXZEROBYTES)];
 }
 
-- (NSData *)decryptCipher:(NSData *)aCipher withNonce:(CryptoBoxNonce *)aNonce error:(NSError **)anError {
+- (NSData *)decryptCipher:(NSData *)aCipher withNonce:(ObjcNaClBoxNonce *)aNonce error:(NSError **)anError {
     if (![aCipher isKindOfClass:[NSData class]]) [NSException raise:NSInvalidArgumentException format:@"invalid cipher"];
-    if (![aNonce isKindOfClass:[CryptoBoxNonce class]]) [NSException raise:NSInvalidArgumentException format:@"invalid nonce"];
+    if (![aNonce isKindOfClass:[ObjcNaClBoxNonce class]]) [NSException raise:NSInvalidArgumentException format:@"invalid nonce"];
 
     NSMutableData *c = [NSMutableData dataWithLength:crypto_box_BOXZEROBYTES];
     [c appendData:aCipher];
