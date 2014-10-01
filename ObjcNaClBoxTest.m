@@ -40,7 +40,7 @@ static NSData *HEX2DATA(const char *x);
     bobsKey      = [ObjcNaClBoxSecretKey keyWithData:HEX2DATA("0404040404040404040404040404040404040404040404040404040404040404") error:NULL];
     nonce        = [ObjcNaClBoxNonce nonceWithData:HEX2DATA("434343434343434343434343434343434343434343434343") error:NULL];
     aliceMessage = STR2DATA("Hello, World!");
-    aliceCipher  = HEX2DATA("bb9fa648e55b759aeaf62785214fedf4d3d60a6bfc40661a7ec0cc4493");
+    aliceCipher  = HEX2DATA("c808d6d80af8c02b190890bbf68387a35ea0429e02b3d295f7686e4585");
 }
 
 - (void)testEncrypt {
