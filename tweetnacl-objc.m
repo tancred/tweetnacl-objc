@@ -128,8 +128,14 @@ static NSError *CreateError(NSInteger code, NSString *descriptionFormat, ...)  N
 }
 
 - (NSData *)encryptMessage:(NSData *)aMessage withNonce:(ObjcNaClBoxNonce *)aNonce error:(NSError **)anError {
-    if (![aMessage isKindOfClass:[NSData class]]) [NSException raise:NSInvalidArgumentException format:@"invalid message"];
-    if (![aNonce isKindOfClass:[ObjcNaClBoxNonce class]]) [NSException raise:NSInvalidArgumentException format:@"invalid nonce"];
+    if (![aMessage isKindOfClass:[NSData class]]) {
+        if (anError) *anError = CreateError(0, @"invalid message");
+        return nil;
+    }
+    if (![aNonce isKindOfClass:[ObjcNaClBoxNonce class]]) {
+        if (anError) *anError = CreateError(0, @"invalid nonce");
+        return nil;
+    }
 
     NSMutableData *m = [NSMutableData dataWithLength:crypto_box_ZEROBYTES];
     [m appendData:aMessage];

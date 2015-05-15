@@ -63,10 +63,18 @@ static NSData *HEX2DATA(const char *x);
     AssertError(error, 0, ObjcNaClErrorDomain, @"invalid public key");
 }
 
-- (void)testEncryptRaisesOnInvalidEncryptArguments {
+- (void)testEncryptFailsOnInvalidMessage {
     ObjcNaClBox *alicesBox = [ObjcNaClBox boxWithSecretKey:alicesKey publicKey:[bobsKey publicKey] error:NULL];
-    STAssertThrowsSpecificNamed([alicesBox encryptMessage:nil withNonce:nonce error:NULL], NSException, NSInvalidArgumentException, @"message");
-    STAssertThrowsSpecificNamed([alicesBox encryptMessage:aliceMessage withNonce:nil error:NULL], NSException, NSInvalidArgumentException, @"nonce");
+    NSError *error = nil;
+    STAssertNil([alicesBox encryptMessage:nil withNonce:nonce error:&error], @"message");
+    AssertError(error, 0, ObjcNaClErrorDomain, @"invalid message");
+}
+
+- (void)testEncryptFailsOnInvalidNonce {
+    ObjcNaClBox *alicesBox = [ObjcNaClBox boxWithSecretKey:alicesKey publicKey:[bobsKey publicKey] error:NULL];
+    NSError *error = nil;
+    STAssertNil([alicesBox encryptMessage:aliceMessage withNonce:nil error:&error], @"nonce");
+    AssertError(error, 0, ObjcNaClErrorDomain, @"invalid nonce");
 }
 
 - (void)testDecrypt {
