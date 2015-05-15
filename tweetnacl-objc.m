@@ -103,14 +103,22 @@ static NSError *CreateError(NSInteger code, NSString *descriptionFormat, ...)  N
 @end
 
 @implementation ObjcNaClBox
-+ (instancetype)boxWithSecretKey:(ObjcNaClBoxSecretKey *)aSecretKey publicKey:(ObjcNaClBoxPublicKey *)aPublicKey {
-    return [[self alloc] initWithSecretKey:aSecretKey publicKey:aPublicKey];
++ (instancetype)boxWithSecretKey:(ObjcNaClBoxSecretKey *)aSecretKey publicKey:(ObjcNaClBoxPublicKey *)aPublicKey error:(NSError **)anError {
+    return [[self alloc] initWithSecretKey:aSecretKey publicKey:aPublicKey error:anError];
 }
 
-- (id)initWithSecretKey:(ObjcNaClBoxSecretKey *)aSecretKey publicKey:(ObjcNaClBoxPublicKey *)aPublicKey {
+- (id)initWithSecretKey:(ObjcNaClBoxSecretKey *)aSecretKey publicKey:(ObjcNaClBoxPublicKey *)aPublicKey error:(NSError **)anError {
     if (!(self = [super init])) return nil;
-    if (![aSecretKey isKindOfClass:[ObjcNaClBoxSecretKey class]]) [NSException raise:NSInvalidArgumentException format:@"invalid secret-key"];
-    if (![aPublicKey isKindOfClass:[ObjcNaClBoxPublicKey class]]) [NSException raise:NSInvalidArgumentException format:@"invalid public-key"];
+
+    if (![aSecretKey isKindOfClass:[ObjcNaClBoxSecretKey class]]) {
+        if (anError) *anError = CreateError(0, @"invalid secret key");
+        return nil;
+    }
+
+    if (![aPublicKey isKindOfClass:[ObjcNaClBoxPublicKey class]]) {
+        if (anError) *anError = CreateError(0, @"invalid public key");
+        return nil;
+    }
 
     unsigned char k[crypto_box_BEFORENMBYTES];
     crypto_box_beforenm(k, [aPublicKey.keyData bytes], [aSecretKey.keyData bytes]);

@@ -44,26 +44,33 @@ static NSData *HEX2DATA(const char *x);
 }
 
 - (void)testEncrypt {
-    ObjcNaClBox *alicesBox = [ObjcNaClBox boxWithSecretKey:alicesKey publicKey:[bobsKey publicKey]];
+    ObjcNaClBox *alicesBox = [ObjcNaClBox boxWithSecretKey:alicesKey publicKey:[bobsKey publicKey] error:NULL];
     NSError *error = nil;
     NSData *c = [alicesBox encryptMessage:aliceMessage withNonce:nonce error:&error];
     STAssertEqualObjects(c, aliceCipher, @"cipher");
     STAssertEqualObjects(error, nil, nil);
 }
 
-- (void)testEncryptRaisesOnInvalidKeyArguments {
-    STAssertThrowsSpecificNamed([ObjcNaClBox boxWithSecretKey:nil publicKey:nil], NSException, NSInvalidArgumentException, @"secret key");
-    STAssertThrowsSpecificNamed([ObjcNaClBox boxWithSecretKey:alicesKey publicKey:nil], NSException, NSInvalidArgumentException, @"public key");
+- (void)testBoxFailsOnInvalidKeyArguments {
+    NSError *error = nil;
+    ObjcNaClBox *box = [ObjcNaClBox boxWithSecretKey:nil publicKey:nil error:&error];
+    STAssertNil(box, nil, @"box");
+    AssertError(error, 0, ObjcNaClErrorDomain, @"invalid secret key");
+
+    error = nil;
+    box = [ObjcNaClBox boxWithSecretKey:alicesKey publicKey:nil error:&error];
+    STAssertNil(box, nil, @"box");
+    AssertError(error, 0, ObjcNaClErrorDomain, @"invalid public key");
 }
 
 - (void)testEncryptRaisesOnInvalidEncryptArguments {
-    ObjcNaClBox *alicesBox = [ObjcNaClBox boxWithSecretKey:alicesKey publicKey:[bobsKey publicKey]];
+    ObjcNaClBox *alicesBox = [ObjcNaClBox boxWithSecretKey:alicesKey publicKey:[bobsKey publicKey] error:NULL];
     STAssertThrowsSpecificNamed([alicesBox encryptMessage:nil withNonce:nonce error:NULL], NSException, NSInvalidArgumentException, @"message");
     STAssertThrowsSpecificNamed([alicesBox encryptMessage:aliceMessage withNonce:nil error:NULL], NSException, NSInvalidArgumentException, @"nonce");
 }
 
 - (void)testDecrypt {
-    ObjcNaClBox *bobsBox = [ObjcNaClBox boxWithSecretKey:bobsKey publicKey:[alicesKey publicKey]];
+    ObjcNaClBox *bobsBox = [ObjcNaClBox boxWithSecretKey:bobsKey publicKey:[alicesKey publicKey] error:NULL];
     NSError *error = nil;
     NSData *m = [bobsBox decryptCipher:aliceCipher withNonce:nonce error:&error];
     STAssertEqualObjects(m, aliceMessage, @"message"); //48656c6c6f2c20576f726c6421
@@ -71,13 +78,13 @@ static NSData *HEX2DATA(const char *x);
 }
 
 - (void)testDecryptRaisesOnInvalidEncryptArguments {
-    ObjcNaClBox *bobsBox = [ObjcNaClBox boxWithSecretKey:bobsKey publicKey:[alicesKey publicKey]];
+    ObjcNaClBox *bobsBox = [ObjcNaClBox boxWithSecretKey:bobsKey publicKey:[alicesKey publicKey] error:NULL];
     STAssertThrowsSpecificNamed([bobsBox decryptCipher:nil withNonce:nonce error:NULL], NSException, NSInvalidArgumentException, @"message");
     STAssertThrowsSpecificNamed([bobsBox decryptCipher:aliceCipher withNonce:nil error:NULL], NSException, NSInvalidArgumentException, @"nonce");
 }
 
 - (void)testBoxOpenFailsWithBadPublicKey {
-    ObjcNaClBox *bobsBox = [ObjcNaClBox boxWithSecretKey:bobsKey publicKey:[bobsKey publicKey]];
+    ObjcNaClBox *bobsBox = [ObjcNaClBox boxWithSecretKey:bobsKey publicKey:[bobsKey publicKey] error:NULL];
     NSError *error = nil;
     NSData *m = [bobsBox decryptCipher:aliceCipher withNonce:nonce error:&error];
     STAssertNil(m, nil, @"message");
@@ -85,7 +92,7 @@ static NSData *HEX2DATA(const char *x);
 }
 
 - (void)testBoxOpenFailsWithBadSecretKey {
-    ObjcNaClBox *bobsBox = [ObjcNaClBox boxWithSecretKey:alicesKey publicKey:[alicesKey publicKey]];
+    ObjcNaClBox *bobsBox = [ObjcNaClBox boxWithSecretKey:alicesKey publicKey:[alicesKey publicKey] error:NULL];
     NSError *error = nil;
     NSData *m = [bobsBox decryptCipher:aliceCipher withNonce:nonce error:&error];
     STAssertNil(m, nil, @"message");
@@ -93,7 +100,7 @@ static NSData *HEX2DATA(const char *x);
 }
 
 - (void)testBoxOpenFailsWithBadNonce {
-    ObjcNaClBox *bobsBox = [ObjcNaClBox boxWithSecretKey:bobsKey publicKey:[alicesKey publicKey]];
+    ObjcNaClBox *bobsBox = [ObjcNaClBox boxWithSecretKey:bobsKey publicKey:[alicesKey publicKey] error:NULL];
     NSError *error = nil;
     nonce = [ObjcNaClBoxNonce nonceWithData:HEX2DATA("434343434343434343434343434343434343434343434344") error:NULL];
     NSData *m = [bobsBox decryptCipher:aliceCipher withNonce:nonce error:&error];
@@ -102,7 +109,7 @@ static NSData *HEX2DATA(const char *x);
 }
 
 - (void)testBoxOpenFailsWithChangedCipher {
-    ObjcNaClBox *bobsBox = [ObjcNaClBox boxWithSecretKey:bobsKey publicKey:[alicesKey publicKey]];
+    ObjcNaClBox *bobsBox = [ObjcNaClBox boxWithSecretKey:bobsKey publicKey:[alicesKey publicKey] error:NULL];
     NSError *error = nil;
     aliceCipher  = HEX2DATA("bb9fa648e55b759aeaf62785214fedf4d3d60a6bfc40661a7ec0cc4494");
     NSData *m = [bobsBox decryptCipher:aliceCipher withNonce:nonce error:&error];

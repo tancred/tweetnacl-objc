@@ -20,7 +20,7 @@
 @end
 
 @interface ObjcNaClBox : NSObject
-+ (instancetype)boxWithSecretKey:(ObjcNaClBoxSecretKey *)secretKey publicKey:(ObjcNaClBoxPublicKey *)publicKey;
++ (instancetype)boxWithSecretKey:(ObjcNaClBoxSecretKey *)secretKey publicKey:(ObjcNaClBoxPublicKey *)publicKey error:(NSError **)error;
 - (NSData *)encryptMessage:(NSData *)message withNonce:(ObjcNaClBoxNonce *)nonce error:(NSError **)error;
 - (NSData *)decryptCipher:(NSData *)cipher withNonce:(ObjcNaClBoxNonce *)nonce error:(NSError **)error;
 @end
