@@ -3,7 +3,7 @@ CFLAGS = -Wall -fobjc-arc -F/Applications/Xcode.app/Contents/Developer/Library/F
 PROGS = tests
 
 default: $(PROGS)
-	DYLD_FRAMEWORK_PATH=/Applications/Xcode.app/Contents/Developer/Library/Frameworks ./tests
+	DYLD_FRAMEWORK_PATH=/Applications/Xcode.app/Contents/Developer/Library/Frameworks ./tests 2>&1 | xcpretty -cs
 
 tests: \
 	tests.o \
