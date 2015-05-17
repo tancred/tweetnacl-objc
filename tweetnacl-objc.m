@@ -151,8 +151,14 @@ static NSError *CreateError(NSInteger code, NSString *descriptionFormat, ...)  N
 }
 
 - (NSData *)decryptCipher:(NSData *)aCipher withNonce:(ObjcNaClBoxNonce *)aNonce error:(NSError **)anError {
-    if (![aCipher isKindOfClass:[NSData class]]) [NSException raise:NSInvalidArgumentException format:@"invalid cipher"];
-    if (![aNonce isKindOfClass:[ObjcNaClBoxNonce class]]) [NSException raise:NSInvalidArgumentException format:@"invalid nonce"];
+    if (![aCipher isKindOfClass:[NSData class]]) {
+        if (anError) *anError = CreateError(0, @"invalid cipher");
+        return nil;
+    }
+    if (![aNonce isKindOfClass:[ObjcNaClBoxNonce class]]) {
+        if (anError) *anError = CreateError(0, @"invalid nonce");
+        return nil;
+    }
 
     NSMutableData *c = [NSMutableData dataWithLength:crypto_box_BOXZEROBYTES];
     [c appendData:aCipher];
