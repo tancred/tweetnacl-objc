@@ -1,9 +1,12 @@
 CC = clang
-CFLAGS = -Wall -fobjc-arc -F/Applications/Xcode.app/Contents/Developer/Library/Frameworks
+PLATFORM_SDK_PATH=$(shell xcrun --show-sdk-platform-path)
+PLATFORM_FRAMEWORKS_PATH=$(PLATFORM_SDK_PATH)/Developer/Library/Frameworks
+CFLAGS = -Wall -fobjc-arc -F$(PLATFORM_FRAMEWORKS_PATH)
 PROGS = tests
 
+
 default: $(PROGS)
-	DYLD_FRAMEWORK_PATH=/Applications/Xcode.app/Contents/Developer/Library/Frameworks ./tests 2>&1 | xcpretty -cs
+	DYLD_FRAMEWORK_PATH=$(PLATFORM_FRAMEWORKS_PATH) ./tests 2>&1 | xcpretty -cs
 
 tests: \
 	tests.o \
@@ -13,7 +16,7 @@ tests: \
 	NSData+Hex.o \
 	NSData+HexTest.o \
 	ObjcNaClBoxTest.o
-	$(CC) -o $@ $(CFLAGS) $^ -framework Foundation -framework SenTestingKit
+	$(CC) -o $@ $(CFLAGS) $^ -framework Foundation -framework XCTest
 
 tests.o: \
 	tests.m

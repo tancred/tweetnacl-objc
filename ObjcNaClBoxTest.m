@@ -1,15 +1,15 @@
-#import <SenTestingKit/SenTestingKit.h>
+#import <XCTest/XCTest.h>
 #import "tweetnacl-objc.h"
 #import "tweetnacl.h"
 #import "NSData+Hex.h"
 
 #define AssertError(actualError, expectedCode, expectedDomain, expectedDesc) \
 do { \
-    STAssertNotNil((actualError), nil, nil); \
+    XCTAssertNotNil((actualError)); \
     if (!(actualError)) break; \
-    STAssertEquals([(actualError) code], (NSInteger)(expectedCode), @"code"); \
-    STAssertEqualObjects([(actualError) domain], expectedDomain, @"domain"); \
-    STAssertEqualObjects([[(actualError) userInfo] objectForKey:NSLocalizedDescriptionKey], (expectedDesc), nil); \
+    XCTAssertEqual([(actualError) code], (NSInteger)(expectedCode), @"code"); \
+    XCTAssertEqualObjects([(actualError) domain], expectedDomain, @"domain"); \
+    XCTAssertEqualObjects([[(actualError) userInfo] objectForKey:NSLocalizedDescriptionKey], (expectedDesc), @"description"); \
 } while(0)
 
 
@@ -17,7 +17,7 @@ static NSData *STR2DATA(const char *x);
 static NSData *HEX2DATA(const char *x);
 
 
-@interface ObjcNaClBoxTest : SenTestCase
+@interface ObjcNaClBoxTest : XCTestCase
 @property(strong) ObjcNaClBoxSecretKey *alicesKey;
 @property(strong) ObjcNaClBoxSecretKey *bobsKey;
 @property(strong) ObjcNaClBoxNonce *nonce;
@@ -25,10 +25,10 @@ static NSData *HEX2DATA(const char *x);
 @property(strong) NSData *aliceCipher;
 @end
 
-@interface ObjcNaClBoxKeyTest : SenTestCase
+@interface ObjcNaClBoxKeyTest : XCTestCase
 @end
 
-@interface ObjcNaClBoxNonceTest : SenTestCase
+@interface ObjcNaClBoxNonceTest : XCTestCase
 @end
 
 
@@ -47,33 +47,33 @@ static NSData *HEX2DATA(const char *x);
     ObjcNaClBox *alicesBox = [ObjcNaClBox boxWithSecretKey:alicesKey publicKey:[bobsKey publicKey] error:NULL];
     NSError *error = nil;
     NSData *c = [alicesBox encryptMessage:aliceMessage withNonce:nonce error:&error];
-    STAssertEqualObjects(c, aliceCipher, @"cipher");
-    STAssertEqualObjects(error, nil, nil);
+    XCTAssertEqualObjects(c, aliceCipher);
+    XCTAssertNil(error);
 }
 
 - (void)testBoxFailsOnInvalidKeyArguments {
     NSError *error = nil;
     ObjcNaClBox *box = [ObjcNaClBox boxWithSecretKey:nil publicKey:nil error:&error];
-    STAssertNil(box, nil, @"box");
+    XCTAssertNil(box);
     AssertError(error, 0, ObjcNaClErrorDomain, @"invalid secret key");
 
     error = nil;
     box = [ObjcNaClBox boxWithSecretKey:alicesKey publicKey:nil error:&error];
-    STAssertNil(box, nil, @"box");
+    XCTAssertNil(box);
     AssertError(error, 0, ObjcNaClErrorDomain, @"invalid public key");
 }
 
 - (void)testEncryptFailsOnInvalidMessage {
     ObjcNaClBox *alicesBox = [ObjcNaClBox boxWithSecretKey:alicesKey publicKey:[bobsKey publicKey] error:NULL];
     NSError *error = nil;
-    STAssertNil([alicesBox encryptMessage:nil withNonce:nonce error:&error], @"message");
+    XCTAssertNil([alicesBox encryptMessage:nil withNonce:nonce error:&error], @"message");
     AssertError(error, 0, ObjcNaClErrorDomain, @"invalid message");
 }
 
 - (void)testEncryptFailsOnInvalidNonce {
     ObjcNaClBox *alicesBox = [ObjcNaClBox boxWithSecretKey:alicesKey publicKey:[bobsKey publicKey] error:NULL];
     NSError *error = nil;
-    STAssertNil([alicesBox encryptMessage:aliceMessage withNonce:nil error:&error], @"nonce");
+    XCTAssertNil([alicesBox encryptMessage:aliceMessage withNonce:nil error:&error], @"nonce");
     AssertError(error, 0, ObjcNaClErrorDomain, @"invalid nonce");
 }
 
@@ -81,21 +81,21 @@ static NSData *HEX2DATA(const char *x);
     ObjcNaClBox *bobsBox = [ObjcNaClBox boxWithSecretKey:bobsKey publicKey:[alicesKey publicKey] error:NULL];
     NSError *error = nil;
     NSData *m = [bobsBox decryptCipher:aliceCipher withNonce:nonce error:&error];
-    STAssertEqualObjects(m, aliceMessage, @"message"); //48656c6c6f2c20576f726c6421
-    STAssertEqualObjects(error, nil, nil);
+    XCTAssertEqualObjects(m, aliceMessage);
+    XCTAssertNil(error);
 }
 
 - (void)testDecryptFailsOnInvalidCipher {
     ObjcNaClBox *bobsBox = [ObjcNaClBox boxWithSecretKey:bobsKey publicKey:[alicesKey publicKey] error:NULL];
     NSError *error = nil;
-    STAssertNil([bobsBox decryptCipher:nil withNonce:nonce error:&error], @"cipher");
+    XCTAssertNil([bobsBox decryptCipher:nil withNonce:nonce error:&error], @"cipher");
     AssertError(error, 0, ObjcNaClErrorDomain, @"invalid cipher");
 }
 
 - (void)testDecryptFailsOnInvalidNonce {
     ObjcNaClBox *bobsBox = [ObjcNaClBox boxWithSecretKey:bobsKey publicKey:[alicesKey publicKey] error:NULL];
     NSError *error = nil;
-    STAssertNil([bobsBox decryptCipher:aliceCipher withNonce:nil error:&error], @"nonce");
+    XCTAssertNil([bobsBox decryptCipher:aliceCipher withNonce:nil error:&error], @"nonce");
     AssertError(error, 0, ObjcNaClErrorDomain, @"invalid nonce");
 }
 
@@ -103,7 +103,7 @@ static NSData *HEX2DATA(const char *x);
     ObjcNaClBox *bobsBox = [ObjcNaClBox boxWithSecretKey:bobsKey publicKey:[bobsKey publicKey] error:NULL];
     NSError *error = nil;
     NSData *m = [bobsBox decryptCipher:aliceCipher withNonce:nonce error:&error];
-    STAssertNil(m, nil, @"message");
+    XCTAssertNil(m, @"message");
     AssertError(error, -1, ObjcNaClErrorDomain, @"ciphertext verification failed");
 }
 
@@ -111,7 +111,7 @@ static NSData *HEX2DATA(const char *x);
     ObjcNaClBox *bobsBox = [ObjcNaClBox boxWithSecretKey:alicesKey publicKey:[alicesKey publicKey] error:NULL];
     NSError *error = nil;
     NSData *m = [bobsBox decryptCipher:aliceCipher withNonce:nonce error:&error];
-    STAssertNil(m, nil, @"message");
+    XCTAssertNil(m, @"message");
     AssertError(error, -1, ObjcNaClErrorDomain, @"ciphertext verification failed");
 }
 
@@ -120,7 +120,7 @@ static NSData *HEX2DATA(const char *x);
     NSError *error = nil;
     nonce = [ObjcNaClBoxNonce nonceWithData:HEX2DATA("434343434343434343434343434343434343434343434344") error:NULL];
     NSData *m = [bobsBox decryptCipher:aliceCipher withNonce:nonce error:&error];
-    STAssertNil(m, nil, @"message");
+    XCTAssertNil(m, @"message");
     AssertError(error, -1, ObjcNaClErrorDomain, @"ciphertext verification failed");
 }
 
@@ -129,7 +129,7 @@ static NSData *HEX2DATA(const char *x);
     NSError *error = nil;
     aliceCipher  = HEX2DATA("bb9fa648e55b759aeaf62785214fedf4d3d60a6bfc40661a7ec0cc4494");
     NSData *m = [bobsBox decryptCipher:aliceCipher withNonce:nonce error:&error];
-    STAssertNil(m, nil, @"message");
+    XCTAssertNil(m, @"message");
     AssertError(error, -1, ObjcNaClErrorDomain, @"ciphertext verification failed");
 }
 
@@ -141,52 +141,52 @@ static NSData *HEX2DATA(const char *x);
 - (void)testPublicKey {
     NSData *data = HEX2DATA("5dfedd3b6bd47f6fa28ee15d969d5bb0ea53774d488bdaf9df1c6e0124b3ef22");
     ObjcNaClBoxPublicKey *pk = [ObjcNaClBoxPublicKey keyWithData:data error:NULL];
-    STAssertNotNil(pk, nil);
-    STAssertEqualObjects([data mutableCopy], [pk keyData], nil);
+    XCTAssertNotNil(pk);
+    XCTAssertEqualObjects([data mutableCopy], [pk keyData]);
 }
 
 - (void)testPublicKeyReturnsErrorOnBadLength {
     NSError *error = nil;
     ObjcNaClBoxPublicKey *pk = [ObjcNaClBoxPublicKey keyWithData:STR2DATA("too short") error:&error];
-    STAssertNil(pk, nil);
+    XCTAssertNil(pk, @"key");
     AssertError(error, 2, ObjcNaClErrorDomain, @"incorrect public-key length");
 }
 
 - (void)testPublicKeyErrorIgnoresErrorParam {
-    STAssertNil([ObjcNaClBoxPublicKey keyWithData:STR2DATA("too short") error:NULL], nil);
+    XCTAssertNil([ObjcNaClBoxPublicKey keyWithData:STR2DATA("too short") error:NULL]);
 }
 
 - (void)testSecretKey {
     NSData *data = HEX2DATA("0404040404040404040404040404040404040404040404040404040404040404");
     ObjcNaClBoxSecretKey *sk = [ObjcNaClBoxSecretKey keyWithData:data error:NULL];
-    STAssertNotNil(sk, nil);
-    STAssertEqualObjects([data mutableCopy], [sk keyData], nil);
+    XCTAssertNotNil(sk);
+    XCTAssertEqualObjects([data mutableCopy], [sk keyData]);
 }
 
 - (void)testSecretKeyReturnsErrorOnBadLength {
     NSError *error = nil;
     ObjcNaClBoxSecretKey *sk = [ObjcNaClBoxSecretKey keyWithData:STR2DATA("too short") error:&error];
-    STAssertNil(sk, nil);
+    XCTAssertNil(sk, @"key");
     AssertError(error, 3, ObjcNaClErrorDomain, @"incorrect secret-key length");
 }
 
 - (void)testSecretKeyErrorIgnoresErrorParam {
-    STAssertNil([ObjcNaClBoxSecretKey keyWithData:STR2DATA("too short") error:NULL], nil);
+    XCTAssertNil([ObjcNaClBoxSecretKey keyWithData:STR2DATA("too short") error:NULL]);
 }
 
 - (void)testSecretKeyCreatesPublicKey {
     NSData *data = HEX2DATA("0404040404040404040404040404040404040404040404040404040404040404");
     ObjcNaClBoxSecretKey *sk = [ObjcNaClBoxSecretKey keyWithData:data error:NULL];
     ObjcNaClBoxPublicKey *pk = [sk publicKey];
-    STAssertNotNil(pk, nil);
-    STAssertEqualObjects(HEX2DATA("ac01b2209e86354fb853237b5de0f4fab13c7fcbf433a61c019369617fecf10b"), [pk keyData], nil);
+    XCTAssertNotNil(pk);
+    XCTAssertEqualObjects(HEX2DATA("ac01b2209e86354fb853237b5de0f4fab13c7fcbf433a61c019369617fecf10b"), [pk keyData]);
 }
 
 - (void)testGenerateSecretKey {
     ObjcNaClBoxSecretKey *sk = [ObjcNaClBoxSecretKey new];
-    STAssertNotNil(sk, nil);
-    STAssertEqualObjects(HEX2DATA("0303030303030303030303030303030303030303030303030303030303030303"), [sk keyData], nil);
-    STAssertEqualObjects(HEX2DATA("5dfedd3b6bd47f6fa28ee15d969d5bb0ea53774d488bdaf9df1c6e0124b3ef22"), [[sk publicKey] keyData], nil);
+    XCTAssertNotNil(sk);
+    XCTAssertEqualObjects(HEX2DATA("0303030303030303030303030303030303030303030303030303030303030303"), [sk keyData]);
+    XCTAssertEqualObjects(HEX2DATA("5dfedd3b6bd47f6fa28ee15d969d5bb0ea53774d488bdaf9df1c6e0124b3ef22"), [[sk publicKey] keyData]);
 }
 
 @end
@@ -197,19 +197,19 @@ static NSData *HEX2DATA(const char *x);
 - (void)testValid {
     NSData *data = HEX2DATA("434343434343434343434343434343434343434343434343");
     ObjcNaClBoxNonce *nonce = [ObjcNaClBoxNonce nonceWithData:data error:NULL];
-    STAssertNotNil(nonce, nil);
-    STAssertEqualObjects([data mutableCopy], [nonce nonceData], nil);
+    XCTAssertNotNil(nonce);
+    XCTAssertEqualObjects([data mutableCopy], [nonce nonceData]);
 }
 
 - (void)testNonceReturnsErrorOnBadLength {
     NSError *error = nil;
     ObjcNaClBoxNonce *nonce = [ObjcNaClBoxNonce nonceWithData:STR2DATA("too short") error:&error];
-    STAssertNil(nonce, nil);
+    XCTAssertNil(nonce, @"nonce");
     AssertError(error, 1, ObjcNaClErrorDomain, @"incorrect nonce length");
 }
 
 - (void)testPublicKeyErrorIgnoresErrorParam {
-    STAssertNil([ObjcNaClBoxNonce nonceWithData:STR2DATA("too short") error:NULL], nil);
+    XCTAssertNil([ObjcNaClBoxNonce nonceWithData:STR2DATA("too short") error:NULL]);
 }
 
 @end

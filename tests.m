@@ -1,9 +1,8 @@
 #import <Foundation/Foundation.h>
-#import <SenTestingKit/SenTestingKit.h>
+#import <XCTest/XCTest.h>
 
 int main() {
 	@autoreleasepool {
-		return SenSelfTestMain();
 	}
 	return 0;
 }
