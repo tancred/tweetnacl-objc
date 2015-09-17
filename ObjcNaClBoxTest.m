@@ -156,6 +156,10 @@ static NSData *HEX2DATA(const char *x);
     XCTAssertNil([ObjcNaClBoxPublicKey keyWithData:STR2DATA("too short") error:NULL]);
 }
 
+- (void)testPublicKeyReturnsNilOnInit {
+    XCTAssertNil([[ObjcNaClBoxPublicKey alloc] init]);
+}
+
 - (void)testSecretKey {
     NSData *data = HEX2DATA("0404040404040404040404040404040404040404040404040404040404040404");
     ObjcNaClBoxSecretKey *sk = [ObjcNaClBoxSecretKey keyWithData:data error:NULL];

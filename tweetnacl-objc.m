@@ -30,6 +30,10 @@ static NSError *CreateError(NSInteger code, NSString *descriptionFormat, ...)  N
 
 @implementation ObjcNaClBoxPublicKey
 
+- (id)init {
+    return nil;
+}
+
 - (id)initWithData:(NSData *)someData error:(NSError **)anError {
     if (!(self = [super initWithData:someData error:anError])) return nil;
     if ([self.keyData length] != crypto_box_PUBLICKEYBYTES) {
