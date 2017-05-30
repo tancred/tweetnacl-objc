@@ -3,6 +3,7 @@
 
 int main() {
 	@autoreleasepool {
+		[[XCTestSuite defaultTestSuite] runTest];
 	}
 	return 0;
 }
